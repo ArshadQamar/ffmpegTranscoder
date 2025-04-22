@@ -2,7 +2,9 @@ from celery import shared_task
 from .models import TranscodingJob, Channel
 from django.utils import timezone
 import subprocess
+import os,signal
 
+@shared_task
 def transcoding_start(job_id):
     #fetching job and related channels
     try:
@@ -21,12 +23,12 @@ def transcoding_start(job_id):
         elif channel.input_type == 'udp':
             ffmpeg_command += ['-i',f"udp://{channel.input_multicast_ip}?localaddr={channel.input_network}"]
         elif channel.input_type == 'file':
-            ffmpeg += ['-i',channel.input_file.path]
+            ffmpeg_command += ['-i',channel.input_file.path]
 
         # Video & Audio codec, bitrate, resolution, etc.
         ffmpeg_command += [
             '-c:v', channel.video_codec,  # Video codec (H.264, H.265, etc.)
-            '-b:v', str(channel.video_bitrate),  # Video bitrate
+            '-b:v', str(channel.video_bitrate), # Video bitrate
             '-c:a', channel.audio,  # Audio codec (AAC, AC3, etc.)
             '-b:a', str(channel.audio_bitrate),  # Audio bitrate
             '-bufsize', str(channel.buffer_size),  # Buffer size
@@ -44,7 +46,7 @@ def transcoding_start(job_id):
         if channel.output_type == 'hls':
             ffmpeg_command += ['-f', 'hls', '-hls_time', '10', '-hls_list_size', '6', '-hls_flags', 'delete_segments', channel.output_url]
         elif channel.output_type == 'udp':
-            ffmpeg_command += ['-f', 'mpegts', f'udp://{channel.output_multicast_ip}?localaddr={channel.output_network} -ttl 50']
+            ffmpeg_command += ['-f', 'mpegts', f'udp://{channel.output_multicast_ip}']#localaddr={channel.output_network} -ttl 50']
         elif channel.output_type == 'file':
             ffmpeg_command += [channel.output_file.path]
 
@@ -61,10 +63,41 @@ def transcoding_start(job_id):
     # Run the FFmpeg command
     try:
         process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        
+        #Save PID and Status in job
+        job.ffmpeg_pid = process.pid
+        job.status = 'running'
+        job.save()
 
         # Optional: Print output line by line (for real-time feedback)
         for line in process.stdout:
             print(line.strip())
+            print(job.ffmpeg_pid)
 
     except Exception as e:
         print(f"Error while starting FFmpeg: {e}")
+        job.status = 'error'
+        job.save()       
+
+
+def transcoding_stop(job_id):
+    try:
+        job = TranscodingJob.objects.get(id=job_id)
+        pid = job.ffmpeg_pid
+        if not pid:
+            print(f'No pid found fro job {job_id}. Is it running?')
+            return
+        #Try killing the process
+        try:
+            os.kill(pid, signal.SIGTERM)
+            print(f"Stopped {job.channel.name} with JOB ID {job_id} and PID {pid}")
+        except Exception as e:
+            print(f'An error occurred {e}')
+            return
+
+        job.status = 'stopped'
+        job.ffmpeg_pid= None
+        job.save()
+
+    except TranscodingJob.DoesNotExist:
+        print(f"Transcoding job with {job_id} not found")

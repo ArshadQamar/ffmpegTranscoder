@@ -1,8 +1,11 @@
 from django.shortcuts import render
-from rest_framework import generics
+from rest_framework import generics, status
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
 from .models import TranscodingJob, Channel
 from .serializers import TranscodingJobSerializer, ChannelSerializer
+from .tasks import transcoding_start,transcoding_stop
 
 # List all transcoding jobs
 class TranscodingJobListView(generics.ListCreateAPIView):
@@ -29,9 +32,31 @@ class ChannelListCreateView(generics.ListCreateAPIView):
     queryset = Channel.objects.all()
     serializer_class = ChannelSerializer
 
+# List Channel based on channel id
 class ChannelDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Channel.objects.all()
     serializer_class = ChannelSerializer
 
+# Start Channel vai API Endpoint
+class StartTranscodingJob(APIView):
+    def post(self,request,pk):
+        #Start the Transcoding job by id
+        try:
+            #Retrieve Job by ID
+            job = TranscodingJob.objects.get(pk=pk)
 
-
+            #call the transcoding start function
+            transcoding_start.delay(pk)
+            return Response({'message': f'Job {pk} started'}, status=status.HTTP_200_OK)
+        
+        except TranscodingJob.DoesNotExist:
+            return Response({'error': 'Transcoding job not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+class StopTranscodingJob(APIView):
+    def post(self,request,pk):
+        try:
+            job = TranscodingJob.objects.get(pk=pk)
+            transcoding_stop(pk)
+            return Response({'message': f'Job {pk} Stopped'}, status=status.HTTP_200_OK)
+        except TranscodingJob.DoesNotExist:
+            return Response({'error': 'Transcoding job not found'}, status=status.HTTP_404_NOT_FOUND)

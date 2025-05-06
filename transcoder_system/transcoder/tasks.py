@@ -15,13 +15,13 @@ def transcoding_start(job_id):
 
         #building ffmpeg command
         #ffmpeg_command=['ffmpeg']
-        ffmpeg_command = [r'D:\Softwares\ffmpeg\bin\ffmpeg.exe']
+        ffmpeg_command = [r'D:\Softwares\ffmpeg\bin\ffmpeg.exe','-y']
 
         #Input Handling
         if channel.input_type == 'hls':
-            ffmpeg_command += ['-i',channel.input_url]
+            ffmpeg_command += ['re','-i',channel.input_url]
         elif channel.input_type == 'udp':
-            ffmpeg_command += ['-i',f"udp://{channel.input_multicast_ip}?localaddr={channel.input_network}"]
+            ffmpeg_command += ['re','-i',f"udp://{channel.input_multicast_ip}?localaddr={channel.input_network}"]
         elif channel.input_type == 'file':
             ffmpeg_command += ['-i',channel.input_file.path]
 
@@ -85,7 +85,7 @@ def transcoding_stop(job_id):
         job = TranscodingJob.objects.get(id=job_id)
         pid = job.ffmpeg_pid
         if not pid:
-            print(f'No pid found fro job {job_id}. Is it running?')
+            print(f'No pid found for job {job_id}. Is it running?')
             return
         #Try killing the process
         try:

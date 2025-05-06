@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
+    'corsheaders',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -46,6 +47,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -151,4 +154,7 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0' # Stores task results in Redi
 
 # Celery will retry connecting to Redis automatically on startup.
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+
+CORS_ALLOW_ALL_ORIGINS = True
 

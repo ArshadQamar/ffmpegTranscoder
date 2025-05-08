@@ -8,6 +8,6 @@ urlpatterns=[
     path('job/<int:pk>/stop/', StopTranscodingJob.as_view(), name='stop-job'),
     path('channels/',ChannelListCreateView.as_view(), name='Channel'),
     path('channels/<int:pk>/',ChannelDetailView.as_view(), name='ChannelDetails'),
-    path('network-interfaces/', NetworkInterfaceView.as_view(), name='network-interfaces'),
+    path('netiface/', NetworkInterfaceView.as_view(), name='network-interfaces'),
 ]
 

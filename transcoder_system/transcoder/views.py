@@ -71,13 +71,14 @@ class NetworkInterfaceView(APIView):
         data = []
 
         for name, addrs in interfaces.items():
-            ips = []
+            ip_address = None
             for addr in addrs:
-                if addr.family.name == 'AF_INET':  # Only IPv4
-                    ips.append(addr.address)
+                if addr.family.name == 'AF_INET':
+                    ip_address = addr.address
+                    break  # Stop after the first IPv4 address
             data.append({
                 "name": name,
-                "ip_addresses": ips
+                "ip_addresses": ip_address
             })
 
         return Response(data)

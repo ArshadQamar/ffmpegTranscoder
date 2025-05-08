@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import TranscodingJobListView,TranscodingJobDetailView,ChannelListCreateView,ChannelDetailView,StartTranscodingJob,StopTranscodingJob
+from .views import TranscodingJobListView,TranscodingJobDetailView,ChannelListCreateView,ChannelDetailView,StartTranscodingJob,StopTranscodingJob,NetworkInterfaceView
 
 urlpatterns=[
     path('jobs/', TranscodingJobListView.as_view(), name='tarnscodingjob_list'),
@@ -8,5 +8,6 @@ urlpatterns=[
     path('job/<int:pk>/stop/', StopTranscodingJob.as_view(), name='stop-job'),
     path('channels/',ChannelListCreateView.as_view(), name='Channel'),
     path('channels/<int:pk>/',ChannelDetailView.as_view(), name='ChannelDetails'),
+    path('network-interfaces/', NetworkInterfaceView.as_view(), name='network-interfaces'),
 ]
 

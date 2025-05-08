@@ -1,3 +1,5 @@
+import psutil
+from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.views import APIView
@@ -60,3 +62,22 @@ class StopTranscodingJob(APIView):
             return Response({'message': f'Job {pk} Stopped'}, status=status.HTTP_200_OK)
         except TranscodingJob.DoesNotExist:
             return Response({'error': 'Transcoding job not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class NetworkInterfaceView(APIView):
+    def get(self, request):
+        interfaces = psutil.net_if_addrs()
+
+        data = []
+
+        for name, addrs in interfaces.items():
+            ips = []
+            for addr in addrs:
+                if addr.family.name == 'AF_INET':  # Only IPv4
+                    ips.append(addr.address)
+            data.append({
+                "name": name,
+                "ip_addresses": ips
+            })
+
+        return Response(data)

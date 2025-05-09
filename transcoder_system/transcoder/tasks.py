@@ -57,6 +57,7 @@ def transcoding_start(job_id):
         print(f"FFmpeg Command: {' '.join(ffmpeg_command)}")
 
 
+
     except TranscodingJob.DoesNotExist:
         print(f"job with id {job_id} not found")
 

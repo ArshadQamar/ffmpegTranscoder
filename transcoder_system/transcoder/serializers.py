@@ -8,12 +8,21 @@ class TranscodingJobSerializer(serializers.ModelSerializer):
 
 class ChannelSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
+    job_id = serializers.SerializerMethodField()
+    
     class Meta:
         model = Channel
         fields = "__all__"
 
+    #Getting status from job db
     def get_status(self, obj):
         # Check if the channel has a job
         if hasattr(obj, 'jobs'):
             return obj.jobs.status
+        return None
+
+    #getting id from job db
+    def get_job_id(self,obj):
+        if hasattr(obj, 'jobs'):
+            return obj.jobs.id
         return None

@@ -5,6 +5,6 @@ class TranscoderConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'transcoder'
 
+    # Import signals so they get registered
     def ready(self):
-        # Import signals so they get registered
         import transcoder.signals

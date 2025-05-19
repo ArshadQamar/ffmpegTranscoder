@@ -87,6 +87,9 @@ def transcoding_stop(job_id):
         pid = job.ffmpeg_pid
         if not pid:
             print(f'No pid found for job {job_id}. Is it running?')
+            if job.status=='running':
+                job.status = 'stopped'
+                job.save()
             return
         #Try killing the process
         try:
@@ -94,6 +97,9 @@ def transcoding_stop(job_id):
             print(f"Stopped {job.channel.name} with JOB ID {job_id} and PID {pid}")
         except Exception as e:
             print(f'An error occurred {e}')
+            if job.status == 'running':
+                job.status = 'stopped'
+                job.save()            
             return
 
         job.status = 'stopped'

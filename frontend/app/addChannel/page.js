@@ -24,6 +24,7 @@ export default function CreateChannel() {
   const [frameRate, setFrameRate] = useState('');
   const [logoPath, setLogoPath] = useState('');
   const [logoPosition, setLogoPosition] = useState('');
+  
 
   useEffect(() => {
     // Fetch network interfaces from API
@@ -37,12 +38,60 @@ export default function CreateChannel() {
       });
   }, []);
 
+  //Handling submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log('submit clicked')
+    
+    const payload = {
+      name,
+      input_type: inputType,
+      input_url: inputType === 'hls' ? input: null,
+      input_multicast_ip: inputType === 'udp' ? input: null,
+      input_network: inputType === 'udp' ? selectedInputNetwork: null,
+      input_file: inputType === 'file' ? input : null,
+
+      output_type: outputType,
+      output_url: outputType === 'hls' ? output : null,
+      output_multicast_ip: outputType === 'udp' ? output : null,
+      output_network: outputType === 'udp' ? selectedOutputNetwork : null,
+      output_file: outputType === 'file' ? output : null,      
+
+      video_codec: videoCodec,
+      audio: audioCodec,
+      audio_gain: parseFloat(audioGain) || 1.0,
+      video_bitrate: parseInt(videoBitrate) || 0,
+      audio_bitrate: parseInt(audioBitrate) || 0,
+      buffer_size: parseInt(bufferSize) || 0,
+      resolution,
+      frame_rate: parseInt(frameRate) || 0,
+
+      logo_path: logoPath || null,
+      logo_position: logoPosition || null,
+    };
+
+    try{
+      const response = await axios.post('http://localhost:8000/api/channels/', payload);
+      console.log(response.data)
+      if(response.status === 201 || response.status === 200){
+        alert(`channel created succesfully`);
+      }else{
+        alert(`unexpected response ${responsestatus}`);
+      }
+
+    }catch(error){
+      alert(`Failed to create channel. Error: ${error.response?.data?.detail || error.message}`);
+    }
+    
+    
+  }
+
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">📺 Create New Channel</h1>
 
-      <form className="space-y-4">
+      <form className="space-y-4" onSubmit={handleSubmit}>
         {/* Channel Name */}
         <div>
           <label className="block font-semibold mb-1">Channel Name:</label>

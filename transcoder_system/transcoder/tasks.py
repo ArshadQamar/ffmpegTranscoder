@@ -19,9 +19,9 @@ def transcoding_start(job_id):
 
         #Input Handling
         if channel.input_type == 'hls':
-            ffmpeg_command += ['re','-i',channel.input_url]
+            ffmpeg_command += ['-re','-i',channel.input_url]
         elif channel.input_type == 'udp':
-            ffmpeg_command += ['re','-i',f"udp://{channel.input_multicast_ip}?localaddr={channel.input_network}"]
+            ffmpeg_command += ['-re','-i',f"udp://{channel.input_multicast_ip}?localaddr={channel.input_network}"]
         elif channel.input_type == 'file':
             ffmpeg_command += ['-i',channel.input_file.path]
 

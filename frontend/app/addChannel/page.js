@@ -153,8 +153,8 @@ export default function CreateChannel() {
               >
                 <option value="">-- Select Network Interface --</option>
                 {network.map((iface, index) => (
-                  <option key={index} value={iface.name}>
-                    {iface.name}
+                  <option key={index} value={iface.ip_addresses}>
+                    {iface.name} {iface.ip_addresses}
                   </option>
                 ))}
               </select>

@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 
 # Create your models here.
 class Channel(models.Model):
@@ -84,6 +86,8 @@ class Channel(models.Model):
     buffer_size=models.IntegerField(help_text="4.8M,9.6M")
     resolution=models.CharField(max_length=10,choices=RESOLUTION_CHOICES,default='1920x1080')
     frame_rate=models.IntegerField(choices=FRAMERATE_CHOICES, default=30)
+    service_id = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(9999)])
+
 
     logo_path=models.CharField(max_length=500,blank=True, null=True)
     logo_position=models.CharField(max_length=20, choices=LOGO_POSITIONS, null=True, blank=True)
@@ -116,8 +120,6 @@ class TranscodingJob(models.Model):
 
     def __str__(self):
         return f"Job for {self.channel.name} - {self.status}"
-
-
 
 
 

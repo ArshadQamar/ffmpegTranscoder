@@ -24,6 +24,7 @@ export default function CreateChannel() {
   const [frameRate, setFrameRate] = useState('');
   const [logoPath, setLogoPath] = useState('');
   const [logoPosition, setLogoPosition] = useState('');
+  const [serviceId, setServiceId] = useState('');
   
 
   useEffect(() => {
@@ -63,6 +64,7 @@ export default function CreateChannel() {
       video_bitrate: parseInt(videoBitrate) || 0,
       audio_bitrate: parseInt(audioBitrate) || 0,
       buffer_size: parseInt(bufferSize) || 0,
+      service_id: parseInt(serviceId),
       resolution,
       frame_rate: parseInt(frameRate) || 0,
 
@@ -321,6 +323,19 @@ export default function CreateChannel() {
               className="w-full p-2 border rounded"
               placeholder="e.g. 4800000"
             />
+          </div>
+
+          {/* Service ID */}
+          <div className='mb-4'>
+            <label className="block font-semibold mb-1">SID</label>
+            <input
+              type="number"
+              value={serviceId}
+              onChange={(e)=>setServiceId(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder='(1-9999)'
+            />
+
           </div>
 
           {/* Resolution */}

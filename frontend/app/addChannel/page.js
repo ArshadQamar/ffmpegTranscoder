@@ -4,6 +4,10 @@ import axios from 'axios';
 
 
 export default function CreateChannel() {
+  // Environment variables
+  const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL;
+
+  // Channel Details
   const [name, setName] = useState('');
   const [inputType, setInputType] = useState('');
   const [input, setInput] = useState('')
@@ -29,7 +33,7 @@ export default function CreateChannel() {
 
   useEffect(() => {
     // Fetch network interfaces from API
-    axios.get('http://localhost:8000/api/netiface')
+    axios.get(`${apiUrl}/netiface`)
       .then(response => {
         setNetwork(response.data); // Set the fetched network interfaces in state
         console.log(response.data)
@@ -73,7 +77,7 @@ export default function CreateChannel() {
     };
 
     try{
-      const response = await axios.post('http://localhost:8000/api/channels/', payload);
+      const response = await axios.post(`${apiUrl}/channels/`, payload);
       console.log(response.data)
       if(response.status === 201 || response.status === 200){
         alert(`channel created succesfully`);

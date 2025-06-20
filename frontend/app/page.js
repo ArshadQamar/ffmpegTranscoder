@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 
 export default function Dashboard() {
+ // Environment variable
+ const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL;
+
+
   // State to hold channels
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,7 +17,7 @@ export default function Dashboard() {
 
   // Fetch channel list from API on component mount
   useEffect(() => {
-    axios.get('http://localhost:8000/api/channels/')
+    axios.get(`${apiUrl}/channels/`)
       .then(response => {
         setChannels(response.data); // Store data in state
         setLoading(false);          // Stop loading spinner
@@ -30,10 +34,10 @@ export default function Dashboard() {
     console.log(`starting channel with id ${jobID}`);
     try{
       //start the job
-      await axios.post(`http://localhost:8000/api/job/${jobID}/start/`)
+      await axios.post(`${apiUrl}/job/${jobID}/start/`)
 
       //Refetch Updated channel from backend
-      const response = await axios.get('http://localhost:8000/api/channels')
+      const response = await axios.get(`${apiUrl}/channels`)
 
       // updating state for UI re render
       setChannels(response.data);
@@ -47,10 +51,10 @@ export default function Dashboard() {
   const handleStop = async (jobID)=>{
     try{
       //stop the job
-      await axios.post(`http://localhost:8000/api/job/${jobID}/stop/`)
+      await axios.post(`${apiUrl}job/${jobID}/stop/`)
 
       //refetch the status
-      const response = await axios.get('http://localhost:8000/api/channels')
+      const response = await axios.get(`${apiUrl}/channels`)
 
       //UI re-render
       setChannels(response.data)

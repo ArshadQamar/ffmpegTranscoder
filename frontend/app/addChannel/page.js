@@ -353,8 +353,11 @@ export default function CreateChannel() {
               <option value="">-- Select Resolution --</option>
               <option value="1920x1080">1920x1080</option>
               <option value="1280x720">1280x720</option>
+              <option value="1024x576">1024x576</option>
+              <option value="768x576">768x576</option>
               <option value="854x480">854x480</option>
               <option value="640x360">640x360</option>
+              <option value="426x240">426x240</option>
             </select>
           </div>
 

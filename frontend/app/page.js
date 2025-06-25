@@ -109,7 +109,9 @@ export default function Dashboard() {
                 </td>
                 <td className="border border-gray-300 px-4 py-1 text-center align-middle">
                   <button className='bg-blue-500 py-1 px-3 rounded hover:bg-blue-700'
-                  onClick={()=>router.push(`/editChannel/${channel.id}`)}>Edit</button>
+                   onClick={()=>{if(channel.status == 'running'){
+                   alert('Stop the channel before editing')
+                   }else{router.push(`/editChannel/${channel.id}`);}}}>Edit</button>
                 </td>
               </tr>
             ))}

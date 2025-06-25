@@ -46,7 +46,7 @@ def transcoding_start(job_id):
         if channel.output_type == 'hls':
             ffmpeg_command += ['-f', 'hls', '-hls_time', '10', '-hls_list_size', '6', '-hls_flags', 'delete_segments', channel.output_url]
         elif channel.output_type == 'udp':
-            ffmpeg_command += ['-streamid','0:101', '-streamid','1:102', '-mpegts_service_id',str(channel.service_id), '-f', 'mpegts', '-ttl', '50', f'udp://{channel.output_multicast_ip}?localaddr={channel.output_network}&pkt_size=1316']
+            ffmpeg_command += ['-streamid',f'0:{channel.video_pid}', '-streamid',f'1:{channel.audio_pid}', '-mpegts_service_id',str(channel.service_id), '-f', 'mpegts', '-ttl', '50', f'udp://{channel.output_multicast_ip}?localaddr={channel.output_network}&pkt_size=1316']
         elif channel.output_type == 'file':
             ffmpeg_command += [channel.output_file.path]
 

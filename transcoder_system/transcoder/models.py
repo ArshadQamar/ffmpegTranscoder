@@ -87,6 +87,8 @@ class Channel(models.Model):
     resolution=models.CharField(max_length=10,choices=RESOLUTION_CHOICES,default='1920x1080')
     frame_rate=models.IntegerField(choices=FRAMERATE_CHOICES, default=30)
     service_id = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(9999)])
+    video_pid = models.IntegerField(default=101, help_text="Video PID")
+    audio_pid = models.IntegerField(default=102, help_text="Audio PID")
 
 
     logo_path=models.CharField(max_length=500,blank=True, null=True)

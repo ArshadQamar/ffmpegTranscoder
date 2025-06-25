@@ -29,6 +29,8 @@ export default function CreateChannel() {
   const [logoPath, setLogoPath] = useState('');
   const [logoPosition, setLogoPosition] = useState('');
   const [serviceId, setServiceId] = useState('');
+  const [videoPid, setVideoPid] = useState('');
+  const [audioPid, setAudioPid] = useState('');
   
 
   useEffect(() => {
@@ -69,6 +71,8 @@ export default function CreateChannel() {
       audio_bitrate: parseInt(audioBitrate) || 0,
       buffer_size: parseInt(bufferSize) || 0,
       service_id: parseInt(serviceId),
+      audio_pid: parseInt(audioPid),
+      video_pid: parseInt(videoPid),
       resolution,
       frame_rate: parseInt(frameRate) || 0,
 
@@ -339,7 +343,28 @@ export default function CreateChannel() {
               className="w-full p-2 border rounded"
               placeholder='(1-9999)'
             />
-
+          </div>
+          {/* Video PID */}
+          <div className='mb-4'>
+            <label className="block font-semibold mb-1">Video PID</label>
+            <input
+              type="number"
+              value={videoPid}
+              onChange={(e)=>setVideoPid(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder='(1-9999)'
+            />
+          </div>
+          {/* Audio PID */}
+          <div className='mb-4'>
+            <label className="block font-semibold mb-1">Audio PID</label>
+            <input
+              type="number"
+              value={audioPid}
+              onChange={(e)=>setAudioPid(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder='(1-9999)'
+            />
           </div>
 
           {/* Resolution */}

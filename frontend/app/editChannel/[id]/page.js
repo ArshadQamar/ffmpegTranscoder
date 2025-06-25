@@ -32,6 +32,8 @@ export default function EditChannel() {
   const [logoPath, setLogoPath] = useState('');
   const [logoPosition, setLogoPosition] = useState('');
   const [serviceId, setServiceId] = useState('');
+  const [videoPid, setVideoPid] = useState('');
+  const [audioPid, setAudioPid] = useState('');
 
   useEffect(() => {
     if (!channelId) return;
@@ -54,6 +56,8 @@ export default function EditChannel() {
         setAudioBitrate(data.audio_bitrate);
         setBufferSize(data.buffer_size);
         setServiceId(data.service_id);
+        setVideoPid(data.video_pid);
+        setAudioPid(data.audio_pid);
         setResolution(data.resolution);
         setFrameRate(data.frame_rate);
         setLogoPath(data.logo_path);
@@ -95,6 +99,8 @@ export default function EditChannel() {
       audio_bitrate: parseInt(audioBitrate) || 0,
       buffer_size: parseInt(bufferSize) || 0,
       service_id: parseInt(serviceId),
+      audio_pid: parseInt(audioPid),
+      video_pid: parseInt(videoPid),
       resolution,
       frame_rate: parseInt(frameRate) || 0,
 
@@ -347,6 +353,24 @@ export default function EditChannel() {
               type="number"
               value={serviceId}
               onChange={(e) => setServiceId(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          <div>
+            <label className="block font-semibold mb-1">Video PID:</label>
+            <input
+              type="number"
+              value={videoPid}
+              onChange={(e) => setVideoPid(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          <div>
+            <label className="block font-semibold mb-1">Audio PID:</label>
+            <input
+              type="number"
+              value={audioPid}
+              onChange={(e) => setAudioPid(e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>

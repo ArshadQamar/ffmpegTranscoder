@@ -1,11 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import axios from 'axios';
 
 
 export default function CreateChannel() {
   // Environment variables
   const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL;
+  
+  // for page routing
+  const router = useRouter();
 
   // Channel Details
   const [name, setName] = useState('');
@@ -87,6 +91,7 @@ export default function CreateChannel() {
       console.log(response.data)
       if(response.status === 201 || response.status === 200){
         alert(`channel created succesfully`);
+        router.push('/')
       }else{
         alert(`unexpected response ${responsestatus}`);
       }

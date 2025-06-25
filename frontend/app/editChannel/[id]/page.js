@@ -1,12 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 export default function EditChannel() {
   const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL;
   const params = useParams();
   const channelId = params?.id;
+  const router = useRouter()
 
   const [loading, setLoading] = useState(true);
 
@@ -62,8 +63,8 @@ export default function EditChannel() {
         setAudioPid(data.audio_pid);
         setResolution(data.resolution);
         setFrameRate(data.frame_rate);
-        setLogoPath(data.logo_path);
-        setLogoPosition(data.logo_position);
+        setLogoPath(data.logo_path || '');
+        setLogoPosition(data.logo_position || '');
         setScanType(data.scan_type)
         setLoading(false);
       })
@@ -117,6 +118,7 @@ export default function EditChannel() {
       const res = await axios.put(`${apiUrl}/channels/${channelId}/`, payload);
       if (res.status === 200) {
         alert('Channel updated successfully!');
+        router.push('/')
       } else {
         alert(`Unexpected response: ${res.status}`);
       }

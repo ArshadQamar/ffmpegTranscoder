@@ -51,7 +51,7 @@ export default function Dashboard() {
   const handleStop = async (jobID)=>{
     try{
       //stop the job
-      await axios.post(`${apiUrl}job/${jobID}/stop/`)
+      await axios.post(`${apiUrl}/job/${jobID}/stop/`)
 
       //refetch the status
       const response = await axios.get(`${apiUrl}/channels`)

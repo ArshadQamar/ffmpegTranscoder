@@ -31,6 +31,7 @@ export default function CreateChannel() {
   const [serviceId, setServiceId] = useState('');
   const [videoPid, setVideoPid] = useState('');
   const [audioPid, setAudioPid] = useState('');
+  const [scanType, setScanType] = useState('')
   
 
   useEffect(() => {
@@ -74,6 +75,7 @@ export default function CreateChannel() {
       audio_pid: parseInt(audioPid),
       video_pid: parseInt(videoPid),
       resolution,
+      scan_type: scanType,
       frame_rate: parseInt(frameRate) || 0,
 
       logo_path: logoPath || null,
@@ -365,6 +367,19 @@ export default function CreateChannel() {
               className="w-full p-2 border rounded"
               placeholder='(1-9999)'
             />
+          </div>
+
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Scan Type:</label>
+            <select
+              value={scanType}
+              onChange={(e) => setScanType(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">-- Select Scan type --</option>
+              <option value="progressive">Progressive</option>
+              <option value="interlaced">Interlaced</option>
+            </select>
           </div>
 
           {/* Resolution */}

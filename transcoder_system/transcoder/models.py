@@ -84,6 +84,7 @@ class Channel(models.Model):
     video_bitrate=models.IntegerField(help_text="2.4M, 4.8M")
     audio_bitrate=models.IntegerField(help_text="128k, 256k")
     buffer_size=models.IntegerField(help_text="4.8M,9.6M")
+    scan_type = models.CharField(max_length=20, choices=[('progressive', 'Progressive'), ('interlaced', 'Interlaced')], default='progressive')
     resolution=models.CharField(max_length=10,choices=RESOLUTION_CHOICES,default='1920x1080')
     frame_rate=models.IntegerField(choices=FRAMERATE_CHOICES, default=30)
     service_id = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(9999)])

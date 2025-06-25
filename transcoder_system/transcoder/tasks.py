@@ -36,6 +36,13 @@ def transcoding_start(job_id):
             '-r', str(channel.frame_rate),  # Frame rate (e.g., 30 fps)
             '-metadata', f'service_name={channel.name}'  # Add service name as metadata
         ]
+
+        if channel.scan_type == 'interlaced':
+            ffmpeg_command += [
+                    '-flags', '+ilme+ildct',
+                    '-field_order', 'tt']  # or 'bb' depending on your field order
+                
+
         if channel.audio_gain:
             ffmpeg_command +=['-af', f'volume={channel.audio_gain}']
         

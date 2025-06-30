@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 
 
@@ -440,19 +440,19 @@ export default function CreateChannel() {
 
           {/* Logo Position */}
           <div className="mb-4">
-            <label className="block font-semibold mb-1">Logo Position:</label>
-            <select
+            <label className="block font-semibold mb-1">Logo Position (FFmpeg overlay):</label>
+            <input
+              type="text"
               value={logoPosition}
               onChange={(e) => setLogoPosition(e.target.value)}
+              placeholder="e.g., x=10:y=10 or x=W-w-10:y=H-h-10"
               className="w-full p-2 border rounded"
-            >
-              <option value="">-- Select Position --</option>
-              <option value="top-left">Top Left</option>
-              <option value="top-right">Top Right</option>
-              <option value="bottom-left">Bottom Left</option>
-              <option value="bottom-right">Bottom Right</option>
-            </select>
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              Format: <code>x=10:y=10</code> or <code>x=W-w-10:y=H-h-10</code>
+            </p>
           </div>
+
         </div>
 
         {/* Submit Button */}

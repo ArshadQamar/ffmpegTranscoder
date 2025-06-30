@@ -47,7 +47,7 @@ def transcoding_start(job_id):
             ffmpeg_command +=['-af', f'volume={channel.audio_gain}']
         
         if channel.logo_path:
-            ffmpeg_command += ['-i', channel.logo_path, 'filter_complex', f'overlay={channel.logo_position}']
+            ffmpeg_command += ['-i', channel.logo_path, '-filter_complex', f'overlay={channel.logo_position}']
 
         #ouput handling
         if channel.output_type == 'hls':

@@ -1,5 +1,6 @@
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+
 
 
 # Create your models here.
@@ -17,12 +18,6 @@ class Channel(models.Model):
         ('file', 'file'),
     ]
 
-    LOGO_POSITIONS = [
-        ('top-left', 'top-left'),
-        ('top-right', 'top-right'),
-        ('bottom-left', 'bottom-left'),
-        ('bottom-right', 'bottom-right'),
-    ]
 
     # Video Codec Choices
     VIDEO_CODEC_CHOICES = [
@@ -93,8 +88,18 @@ class Channel(models.Model):
 
 
     logo_path=models.CharField(max_length=500,blank=True, null=True)
-    logo_position=models.CharField(max_length=20, choices=LOGO_POSITIONS, null=True, blank=True)
-
+    logo_position = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        validators=[
+            RegexValidator(
+                regex=r'^x=(?:\d+|W-w-\d+):y=(?:\d+|H-h-\d+)$',
+                message="Enter a valid overlay position like 'x=10:y=10' or 'x=W-w-10:y=H-h-10'."
+            )
+        ],
+        help_text="Enter overlay position like 'x=10:y=10' or 'x=W-w-10:y=H-h-10'"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

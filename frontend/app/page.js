@@ -67,12 +67,20 @@ export default function Dashboard() {
     <main className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-bold">📡 Channel Dashboard</h1>
-        <button 
-        className="bg-orange-400 text-white px-2 py-1 rounded hover:bg-green-700"
-        onClick={()=>{router.push('/addChannel')}}>
-          + Channel
-        </button>
+        <div className="flex gap-2">
+          <button 
+            className="bg-orange-400 text-white px-2 py-1 rounded hover:bg-green-700"
+            onClick={() => router.push('/addChannel')}>
+            + Channel
+          </button>
+          <button 
+            className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700"
+            onClick={() => router.push('/deleteChannel')}>
+            Delete Channel
+          </button>
+        </div>
       </div>
+
       {/* Show loading state */}
       {loading ? <p>Loading...</p> : 
       error ? <p className="text-red-500">Error: {error}</p> :(

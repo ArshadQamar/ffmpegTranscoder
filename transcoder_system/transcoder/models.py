@@ -74,7 +74,7 @@ class Channel(models.Model):
     #Parameters
     video_codec=models.CharField(max_length=50,choices=VIDEO_CODEC_CHOICES, default='h264')
     audio=models.CharField(max_length=50,choices=AUDIO_CODEC_CHOICES, default='aac')
-    audio_gain=models.FloatField(default=1.0,null=True)
+    audio_gain=models.FloatField(default=1.0,null=True,validators=[MinValueValidator(0.1), MaxValueValidator(10)])
     
     video_bitrate=models.IntegerField(help_text="2.4M, 4.8M")
     audio_bitrate=models.IntegerField(help_text="128k, 256k")
@@ -100,6 +100,7 @@ class Channel(models.Model):
         ],
         help_text="Enter overlay position like 'x=10:y=10' or 'x=W-w-10:y=H-h-10'"
     )
+    logo_opacity=models.FloatField(default=1,null=True,validators=[MinValueValidator(0.1), MaxValueValidator(1)])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

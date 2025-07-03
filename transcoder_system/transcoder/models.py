@@ -85,6 +85,7 @@ class Channel(models.Model):
     service_id = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(9999)])
     video_pid = models.IntegerField(default=101, help_text="Video PID")
     audio_pid = models.IntegerField(default=102, help_text="Audio PID")
+    aspect_ratio = models.CharField(default='16:9',choices=[('16:9','16:9'),('4:3','4:3')],max_length=5)
 
 
     logo_path=models.CharField(max_length=500,blank=True, null=True)

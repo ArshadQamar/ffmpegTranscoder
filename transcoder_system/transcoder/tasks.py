@@ -25,6 +25,12 @@ def transcoding_start(job_id):
         elif channel.input_type == 'file':
             ffmpeg_command += ['-i',channel.input_file.path]
 
+        if channel.logo_path:
+            raw_position = channel.logo_position
+            ffmpeg_position = raw_position.replace('x=', '').replace('y=', '')
+            ffmpeg_command += ['-i', channel.logo_path, '-filter_complex', 
+            f'[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[0][logo]overlay={ffmpeg_position}']
+
         # Video & Audio codec, bitrate, resolution, etc.
         ffmpeg_command += [
             '-c:v', channel.video_codec,  # Video codec (H.264, H.265, etc.)
@@ -33,6 +39,7 @@ def transcoding_start(job_id):
             '-b:a', str(channel.audio_bitrate),  # Audio bitrate
             '-bufsize', str(channel.buffer_size),  # Buffer size
             '-s', channel.resolution,  # Resolution (e.g., 1920x1080)
+            '-aspect', str(channel.aspect_ratio),
             '-r', str(channel.frame_rate),  # Frame rate (e.g., 30 fps)
             '-metadata', f'service_name={channel.name}'  # Add service name as metadata
         ]
@@ -46,11 +53,7 @@ def transcoding_start(job_id):
         if channel.audio_gain:
             ffmpeg_command +=['-af', f'volume={channel.audio_gain}']
         
-        if channel.logo_path:
-            raw_position = channel.logo_position
-            ffmpeg_position = raw_position.replace('x=', '').replace('y=', '')
-            ffmpeg_command += ['-i', channel.logo_path, '-filter_complex', 
-            f'[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[0][logo]overlay={ffmpeg_position}']
+
 
         #ouput handling
         if channel.output_type == 'hls':

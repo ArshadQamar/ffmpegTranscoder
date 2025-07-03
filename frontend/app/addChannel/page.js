@@ -32,10 +32,11 @@ export default function CreateChannel() {
   const [frameRate, setFrameRate] = useState('');
   const [logoPath, setLogoPath] = useState('');
   const [logoPosition, setLogoPosition] = useState('');
+  const [logoOpacity, setLogoOpacity] = useState('');
   const [serviceId, setServiceId] = useState('');
   const [videoPid, setVideoPid] = useState('');
   const [audioPid, setAudioPid] = useState('');
-  const [scanType, setScanType] = useState('')
+  const [scanType, setScanType] = useState('');
   
 
   useEffect(() => {
@@ -84,6 +85,7 @@ export default function CreateChannel() {
 
       logo_path: logoPath || null,
       logo_position: logoPosition || null,
+      logo_opacity: parseFloat(logoOpacity) || null,
     };
 
     try{
@@ -452,6 +454,33 @@ export default function CreateChannel() {
               Format: <code>x=10:y=10</code> or <code>x=W-w-10:y=H-h-10</code>
             </p>
           </div>
+
+          {/* logo opacity */}
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Logo Opacity</label>
+            <input
+              type="number"
+              min="0.0"
+              max="1.0"
+              step="0.01"
+              value={logoOpacity}
+              onChange={(e) => setLogoOpacity(e.target.value)}
+              placeholder="Enter a value between 0.0 and 1.0"
+              className="w-full p-2 border rounded"
+              title="Opacity must be between 0.0 and 1.0"
+            />
+            {(logoOpacity !== '' && (parseFloat(logoOpacity) < 0 || parseFloat(logoOpacity) > 1)) && (
+            <p className="text-red-500 text-sm mt-1">Opacity must be between 0.0 and 1.0</p>
+            )}
+
+          </div>
+            {/* Cross-field Validation: Show if only some fields are filled */}
+              {((logoPath || logoPosition || logoOpacity) &&
+                (!logoPath || !logoPosition || !logoOpacity)) && (
+                <p className="text-red-500 text-sm mb-4">
+                  Please fill in all logo fields: Path, Position, and Opacity.
+                </p>
+            )}
 
         </div>
 

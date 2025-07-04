@@ -417,7 +417,7 @@ export default function CreateChannel() {
               onChange={(e) => setAspectRatio(e.target.value)}
               className="w-full p-2 border rounded"
             >
-              <option value="">-- Select Scan type --</option>
+              <option value="">-- Select Aspect Ratio --</option>
               <option value="16:9">16:9</option>
               <option value="4:3">4:3</option>
             </select>

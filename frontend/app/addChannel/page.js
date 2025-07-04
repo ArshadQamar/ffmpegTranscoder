@@ -37,6 +37,7 @@ export default function CreateChannel() {
   const [videoPid, setVideoPid] = useState('');
   const [audioPid, setAudioPid] = useState('');
   const [scanType, setScanType] = useState('');
+  const [aspectRatio, setAspectRatio] = useState('');
   
 
   useEffect(() => {
@@ -81,6 +82,7 @@ export default function CreateChannel() {
       video_pid: parseInt(videoPid),
       resolution,
       scan_type: scanType,
+      aspect_ratio: aspectRatio,
       frame_rate: parseInt(frameRate) || 0,
 
       logo_path: logoPath || null,
@@ -405,6 +407,19 @@ export default function CreateChannel() {
               <option value="854x480">854x480</option>
               <option value="640x360">640x360</option>
               <option value="426x240">426x240</option>
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Aspect Ratio</label>
+            <select
+              value={aspectRatio}
+              onChange={(e) => setAspectRatio(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">-- Select Scan type --</option>
+              <option value="16:9">16:9</option>
+              <option value="4:3">4:3</option>
             </select>
           </div>
 

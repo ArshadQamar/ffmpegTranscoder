@@ -36,6 +36,8 @@ export default function CreateChannel() {
   const [serviceId, setServiceId] = useState('');
   const [videoPid, setVideoPid] = useState('');
   const [audioPid, setAudioPid] = useState('');
+  const [pmtPid, setPmtPid] = useState('');
+  const [pcrPid, setPcrPid] = useState('');
   const [scanType, setScanType] = useState('');
   const [aspectRatio, setAspectRatio] = useState('');
   
@@ -80,6 +82,8 @@ export default function CreateChannel() {
       service_id: parseInt(serviceId),
       audio_pid: parseInt(audioPid),
       video_pid: parseInt(videoPid),
+      pmt_pid: parseInt(pmtPid), 
+      pcr_pid: parseInt(pcrPid),
       resolution,
       scan_type: scanType,
       aspect_ratio: aspectRatio,
@@ -373,6 +377,26 @@ export default function CreateChannel() {
               type="number"
               value={audioPid}
               onChange={(e)=>setAudioPid(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder='(1-9999)'
+            />
+          </div>
+          <div className='mb-4'>
+            <label className="block font-semibold mb-1">PMT PID</label>
+            <input
+              type="number"
+              value={pmtPid}
+              onChange={(e)=>setPmtPid(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder='(1-9999)'
+            />
+          </div>
+          <div className='mb-4'>
+            <label className="block font-semibold mb-1">PCR PID</label>
+            <input
+              type="number"
+              value={pcrPid}
+              onChange={(e)=>setPcrPid(e.target.value)}
               className="w-full p-2 border rounded"
               placeholder='(1-9999)'
             />

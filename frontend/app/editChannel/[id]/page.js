@@ -36,6 +36,8 @@ export default function EditChannel() {
   const [serviceId, setServiceId] = useState('');
   const [videoPid, setVideoPid] = useState('');
   const [audioPid, setAudioPid] = useState('');
+  const [pmtPid, setPmtPid] = useState('');
+  const [pcrPid, setPcrPid] = useState('');
   const [scanType, setScanType] = useState('')
   const [aspectRatio, setAspectRatio] = useState('')
   
@@ -63,6 +65,8 @@ export default function EditChannel() {
         setServiceId(data.service_id);
         setVideoPid(data.video_pid);
         setAudioPid(data.audio_pid);
+        setPmtPid(data.pmt_pid || '');
+        setPcrPid(data.pcr_pid || '');
         setResolution(data.resolution);
         setFrameRate(data.frame_rate);
         setLogoPath(data.logo_path || '');
@@ -106,9 +110,11 @@ export default function EditChannel() {
       video_bitrate: parseInt(videoBitrate) || 0,
       audio_bitrate: parseInt(audioBitrate) || 0,
       buffer_size: parseInt(bufferSize) || 0,
-      service_id: parseInt(serviceId),
-      audio_pid: parseInt(audioPid),
-      video_pid: parseInt(videoPid),
+      service_id: parseInt(serviceId) || 1,
+      audio_pid: parseInt(audioPid) || 102,
+      video_pid: parseInt(videoPid) || 101,
+      pmt_pid: parseInt(pmtPid),
+      pcr_pid: parseInt(pcrPid),
       resolution,
       scan_type: scanType,
       aspect_ratio: aspectRatio,
@@ -137,7 +143,7 @@ export default function EditChannel() {
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">📝 Edit Channel</h1>
+      <h1 className="text-2xl font-bold mb-6">?? Edit Channel</h1>
       <form className="space-y-4" onSubmit={handleSubmit}>
         {/* Same UI structure as CreateChannel, adapted to use the state values */}
         {/* Channel Name */}
@@ -282,7 +288,7 @@ export default function EditChannel() {
         )}
 
         {/* Transcoding Settings */}
-        <h2 className="text-xl font-semibold mt-8 mb-4">🎛️ Transcoding Parameters</h2>
+        <h2 className="text-xl font-semibold mt-8 mb-4">??? Transcoding Parameters</h2>
 
         {/* Reuse the same structure as before */}
         <div className="grid grid-cols-2 gap-4">
@@ -386,6 +392,24 @@ export default function EditChannel() {
               className="w-full p-2 border rounded"
             />
           </div>
+          <div>
+            <label className="block font-semibold mb-1">PMT PID:</label>
+            <input
+              type="number"
+              value={pmtPid}
+              onChange={(e) => setPmtPid(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          <div>
+            <label className="block font-semibold mb-1">PCR PID:</label>
+            <input
+              type="number"
+              value={pcrPid}
+              onChange={(e) => setPcrPid(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
 
         
           <div>
@@ -450,7 +474,7 @@ export default function EditChannel() {
         </div>
 
         {/* Logo */}
-        <h2 className="text-xl font-semibold mt-8 mb-4">🖼️ Logo Overlay</h2>
+        <h2 className="text-xl font-semibold mt-8 mb-4">??? Logo Overlay</h2>
 
         <div>
           <label className="block font-semibold mb-1">Logo Path:</label>

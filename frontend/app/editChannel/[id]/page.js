@@ -25,6 +25,7 @@ export default function EditChannel() {
   const [videoCodec, setVideoCodec] = useState('');
   const [audioCodec, setAudioCodec] = useState('');
   const [audioGain, setAudioGain] = useState('');
+  const [bitrateMode, setBitrateMode] = useState('');
   const [videoBitrate, setVideoBitrate] = useState('');
   const [audioBitrate, setAudioBitrate] = useState('');
   const [bufferSize, setBufferSize] = useState('');
@@ -59,6 +60,7 @@ export default function EditChannel() {
         setVideoCodec(data.video_codec);
         setAudioCodec(data.audio);
         setAudioGain(data.audio_gain);
+        setBitrateMode(data.bitrate_mode);
         setVideoBitrate(data.video_bitrate);
         setAudioBitrate(data.audio_bitrate);
         setBufferSize(data.buffer_size);
@@ -107,6 +109,7 @@ export default function EditChannel() {
       video_codec: videoCodec,
       audio: audioCodec,
       audio_gain: parseFloat(audioGain) || 1.0,
+      bitrate_mode: bitrateMode,
       video_bitrate: parseInt(videoBitrate) || 0,
       audio_bitrate: parseInt(audioBitrate) || 0,
       buffer_size: parseInt(bufferSize) || 0,
@@ -330,6 +333,20 @@ export default function EditChannel() {
               className="w-full p-2 border rounded"
               placeholder="e.g. 1.0"
             />
+          </div>
+
+        
+          <div>
+            <label className="block font-semibold mb-1">Bitrate Mode:</label>
+            <select
+              value={bitrateMode}
+              onChange={(e) => setBitrateMode(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">-- Select --</option>
+              <option value="cbr">CBR</option>
+              <option value="vbr">VBR</option>
+            </select>
           </div>
 
           <div>

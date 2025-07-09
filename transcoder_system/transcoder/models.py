@@ -76,6 +76,7 @@ class Channel(models.Model):
     audio=models.CharField(max_length=50,choices=AUDIO_CODEC_CHOICES, default='aac')
     audio_gain=models.FloatField(default=1.0,null=True,validators=[MinValueValidator(0.1), MaxValueValidator(10)])
     
+    bitrate_mode=models.CharField(max_length=5,choices=[('cbr','CBR'),('vbr','VBR')],default='vbr')
     video_bitrate=models.IntegerField(help_text="2.4M, 4.8M")
     audio_bitrate=models.IntegerField(help_text="128k, 256k")
     buffer_size=models.IntegerField(help_text="4.8M,9.6M")

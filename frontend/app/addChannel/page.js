@@ -25,6 +25,7 @@ export default function CreateChannel() {
   const [videoCodec, setVideoCodec] = useState('');
   const [audioCodec, setAudioCodec] = useState('');
   const [audioGain, setAudioGain] = useState('');
+  const [bitrateMode, setBitrateMode] = useState('');
   const [videoBitrate, setVideoBitrate] = useState('');
   const [audioBitrate, setAudioBitrate] = useState('');
   const [bufferSize, setBufferSize] = useState('');
@@ -76,6 +77,7 @@ export default function CreateChannel() {
       video_codec: videoCodec,
       audio: audioCodec,
       audio_gain: parseFloat(audioGain) || 1.0,
+      bitrate_mode: bitrateMode,
       video_bitrate: parseInt(videoBitrate) || 0,
       audio_bitrate: parseInt(audioBitrate) || 0,
       buffer_size: parseInt(bufferSize) || 0,
@@ -310,6 +312,19 @@ export default function CreateChannel() {
               className="w-full p-2 border rounded"
               placeholder="e.g. 1.0, 0.1(-90)"
             />
+          </div>
+
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Bitrate Mode:</label>
+            <select
+              value={bitrateMode}
+              onChange={(e) => setBitrateMode(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">-- Select Bitrate Mode --</option>
+              <option value="cbr">CBR</option>
+              <option value="vbr">VBR</option>
+            </select>
           </div>
 
           {/* Video Bitrate */}

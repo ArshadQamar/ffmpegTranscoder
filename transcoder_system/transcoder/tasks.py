@@ -35,6 +35,12 @@ def transcoding_start(job_id):
         ffmpeg_command += [
             '-c:v', channel.video_codec,  # Video codec (H.264, H.265, etc.)
             '-b:v', str(channel.video_bitrate), # Video bitrate
+            *(
+                ['-minrate', str(channel.video_bitrate), '-maxrate', str(channel.video_bitrate)]
+                if channel.bitrate_mode.lower() == 'cbr'
+                else []
+            ),
+
             '-c:a', channel.audio,  # Audio codec (AAC, AC3, etc.)
             '-b:a', str(channel.audio_bitrate),  # Audio bitrate
             '-bufsize', str(channel.buffer_size),  # Buffer size

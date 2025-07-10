@@ -28,8 +28,16 @@ def transcoding_start(job_id):
         if channel.logo_path:
             raw_position = channel.logo_position
             ffmpeg_position = raw_position.replace('x=', '').replace('y=', '')
-            ffmpeg_command += ['-i', channel.logo_path, '-filter_complex', 
-            f'[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[0][logo]overlay={ffmpeg_position}']
+            if channel.scan_type == "interlaced":
+                ffmpeg_command += ['-i', channel.logo_path, '-filter_complex', 
+                f'[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[0][logo]overlay={ffmpeg_position}']
+            else:
+                ffmpeg_command += ['-i', channel.logo_path, '-filter_complex', 
+                f'[0:v]yadif[v0];[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[v0][logo]overlay={ffmpeg_position}']
+        
+        elif channel.scan_type == "progressive":
+             ffmpeg_command += ['-filter_complex', '[0:v]yadif[v0]', '-map', '[v0]']
+
 
         # Video & Audio codec, bitrate, resolution, etc.
         ffmpeg_command += [
@@ -105,6 +113,8 @@ def transcoding_start(job_id):
 
     except Exception as e:
         print(f"Error while starting FFmpeg: {e}")
+        pid = job.ffmpeg_pid
+        os.kill(pid,signal.SIGTERM)
         job.status = 'error'
         job.save()       
 

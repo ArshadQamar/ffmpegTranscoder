@@ -2,7 +2,7 @@ from celery import shared_task
 from .models import TranscodingJob, Channel
 from django.utils import timezone
 import subprocess
-import os,signal
+import os,signal,re,time
 
 @shared_task
 def transcoding_start(job_id):
@@ -14,8 +14,8 @@ def transcoding_start(job_id):
         print(f"Output type: {channel.output_type}")
 
         #building ffmpeg command
-        #ffmpeg_command=['ffmpeg']
-        ffmpeg_command = [r'D:\Softwares\ffmpeg\bin\ffmpeg.exe','-y']
+        ffmpeg_command=['ffmpeg']
+        # ffmpeg_command = [r'D:\Softwares\ffmpeg\bin\ffmpeg.exe','-y']
 
         #Input Handling
         if channel.input_type == 'hls':
@@ -99,22 +99,55 @@ def transcoding_start(job_id):
 
     # Run the FFmpeg command
     try:
+        #Create log directory
+        log_dir=os.path.join('logs','channels')
+        os.makedirs(log_dir,exist_ok=True)
+
+        #Cleaning log filename
+        safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', channel.name)
+        log_file_path = os.path.join(log_dir,f'{safe_name}.log')
+
+        log_file = open(log_file_path, 'a')
+
+
         process = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+
+
         
         #Save PID and Status in job
         job.ffmpeg_pid = process.pid
-        job.status = 'running'
+        job.status = 'pending'
         job.save()
 
-        # Optional: Print output line by line (for real-time feedback)
+        log_found = False
+        start_time = time.time()
+        timeout = 10
+
         for line in process.stdout:
-            print(line.strip())
-            print(job.ffmpeg_pid)
+            log_file.write(line)
+            log_file.flush()
+
+            if 'frame=' in line and 'fps=' in line and 'bitrate=' in line:
+                log_found = True
+                break
+            if time.time() - start_time > timeout:
+                break
+
+        if log_found:
+            job.status='running'
+        else:
+            try:
+                os.kill(process.pid,signal.SIGTERM)
+            except Exception as kill_err:
+                job.status='error'
+
+        job.save()
+
 
     except Exception as e:
         print(f"Error while starting FFmpeg: {e}")
-        pid = job.ffmpeg_pid
-        os.kill(pid,signal.SIGTERM)
+        if job.ffmpeg_pid:
+            os.kill(job.ffmpeg_pid,signal.SIGTERM)
         job.status = 'error'
         job.save()       
 

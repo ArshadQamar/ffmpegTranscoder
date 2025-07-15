@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { resolve } from 'styled-jsx/css';
 
 export default function Dashboard() {
  // Environment variable
@@ -41,6 +42,29 @@ export default function Dashboard() {
 
       // updating state for UI re render
       setChannels(response.data);
+
+      let attempt = 0;
+      const maxAttempt = 10;
+
+      const pollUntilRunning = async ()=>{
+        while (attempt < maxAttempt){
+          const response = await axios.get(`${apiUrl}/channels`);
+          const updated = response.data.find(ch => ch.job_id === jobID)
+
+          if(updated?.status==='running'){
+            setChannels(response.data)
+            return;
+          }
+          await new Promise(resolve => setTimeout(resolve,1000));
+          attempt += 1;
+        }
+
+        const finalResponse =  await axios.get(`${apiUrl}/channels`);
+        setChannels(finalResponse.data)
+
+      };
+      await pollUntilRunning()
+
     }catch(error){
       alert('Error starting job:',error)
     }
@@ -109,8 +133,13 @@ export default function Dashboard() {
                       onClick={()=>handleStop(channel.job_id)}
                       > Stop
                       </button>
-                    ): <button className="bg-green-500 text-white py-1 px-3 rounded hover:bg-red-500"
-                    onClick={()=>{handleStart(channel.job_id)}}>
+                    ): <button className={`py-1 px-3 rounded text-white 
+                        ${channel.status === "pending" 
+                          ? "bg-gray-400 cursor-not-allowed" 
+                          : "bg-green-500 hover:bg-red-500"
+                        }`}
+                       onClick={()=>{handleStart(channel.job_id)}}
+                       disabled={channel.status === "pending"}>
                       Start
                     </button>
                   }

@@ -124,7 +124,7 @@ class TranscodingJob(models.Model):
     
 
     channel=models.OneToOneField('Channel', on_delete=models.CASCADE, related_name='jobs')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='stopped')
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
     ffmpeg_pid = models.IntegerField(null=True, blank=True)

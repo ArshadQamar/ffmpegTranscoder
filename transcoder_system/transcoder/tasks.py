@@ -36,7 +36,7 @@ def transcoding_start(job_id):
                 f'[0:v]yadif[v0];[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[v0][logo]overlay={ffmpeg_position}']
         
         elif channel.scan_type == "progressive":
-             ffmpeg_command += ['-filter_complex', '[0:v]yadif[v0]', '-map', '[v0]']
+             ffmpeg_command += ['-filter_complex', '[0:v]yadif[v0]', '-map', '[v0]','-map','0:a']
 
 
         # Video & Audio codec, bitrate, resolution, etc.

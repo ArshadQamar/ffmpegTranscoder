@@ -2,7 +2,24 @@ from celery import shared_task
 from .models import TranscodingJob, Channel
 from django.utils import timezone
 import subprocess
-import os,signal,re,time
+import os,signal,re,time,threading
+
+def stream_logs(process, log_file_path,job):
+    with open(log_file_path, 'a') as log_file:
+        for line in process.stdout:
+            log_file.write(line)
+            log_file.flush()
+        
+        process.wait()
+        log_file.write(f'\n--- FFmpeg exited with return code {process.returncode} ---\n')
+        log_file.flush()
+    
+    job.refresh_from_db()
+    if job.status not in ['stopped', 'error']:
+        job.status = 'stopped'
+        job.ffmpeg_pid = None
+        job.save()
+        
 
 @shared_task
 def transcoding_start(job_id):
@@ -41,7 +58,7 @@ def transcoding_start(job_id):
 
         # Video & Audio codec, bitrate, resolution, etc.
         ffmpeg_command += [
-            '-c:v', channel.video_codec,  # Video codec (H.264, H.265, etc.)
+            '-c:v', channel.video_codec,'-preset','fast',  # Video codec (H.264, H.265, etc.)
             '-b:v', str(channel.video_bitrate), # Video bitrate
             *(
                 ['-minrate', str(channel.video_bitrate), '-maxrate', str(channel.video_bitrate)]
@@ -142,6 +159,8 @@ def transcoding_start(job_id):
                 job.status='error'
 
         job.save()
+
+        threading.Thread(target=stream_logs, args=(process, log_file_path, job)).start()
 
 
     except Exception as e:

@@ -13,13 +13,20 @@ def stream_logs(process, log_file_path,job):
         process.wait()
         log_file.write(f'\n--- FFmpeg exited with return code {process.returncode} ---\n')
         log_file.flush()
+
+    time.sleep(3)
     
     job.refresh_from_db()
     if job.status not in ['stopped', 'error']:
         job.status = 'stopped'
         job.ffmpeg_pid = None
         job.save()
-        
+
+        #Restarting After exit
+        time.sleep(5)
+        from .tasks import transcoding_start
+        transcoding_start.delay(job.id)
+            
 
 @shared_task
 def transcoding_start(job_id):
@@ -38,7 +45,9 @@ def transcoding_start(job_id):
         if channel.input_type == 'hls':
             ffmpeg_command += ['-re','-i',channel.input_url]
         elif channel.input_type == 'udp':
-            ffmpeg_command += ['-re','-i',f"udp://{channel.input_multicast_ip}?localaddr={channel.input_network}"]
+            ffmpeg_command += ['-f', 'mpegts', '-fflags', '+genpts+discardcorrupt+igndts',
+                               '-probesize', '1000000', '-analyzeduration', '1000000',
+                               '-i',f"udp://{channel.input_multicast_ip}?localaddr={channel.input_network}"]
         elif channel.input_type == 'file':
             ffmpeg_command += ['-i',channel.input_file.path]
 

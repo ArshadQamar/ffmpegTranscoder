@@ -2,31 +2,75 @@ from celery import shared_task
 from .models import TranscodingJob, Channel
 from django.utils import timezone
 import subprocess
-import os,signal,re,time,threading
+import os,signal,re,time,threading,logging
 
-def stream_logs(process, log_file_path,job):
-    with open(log_file_path, 'a') as log_file:
+def stream_logs(process, log_file_path, job):
+    logger = logging.getLogger(f"ffmpeg_logger_{job.id}")
+    logger.setLevel(logging.INFO)
+    logger.propagate = False  # prevent logs leaking to celery console
+
+    handler = logging.FileHandler(log_file_path, mode='a')
+    formatter = logging.Formatter('%(asctime)s - %(message)s')
+    handler.setFormatter(formatter)
+
+    if not any(isinstance(h, logging.FileHandler) and h.baseFilename == handler.baseFilename for h in logger.handlers):
+        logger.addHandler(handler)
+
+    log_found = False
+    start_time = time.time()
+    timeout = 10
+
+    try:
         for line in process.stdout:
-            log_file.write(line)
-            log_file.flush()
-        
+            line = line.strip()
+            logger.info(line)
+
+            # Live status check
+            if not log_found and 'frame=' in line and 'fps=' in line and 'bitrate=' in line:
+                log_found = True
+                job.status = 'running'
+                job.save()
+
+            # Timeout if no log within expected period
+            if not log_found and time.time() - start_time > timeout:
+                logger.warning("No valid FFmpeg log found in time window. Terminating.")
+                try:
+                    process.terminate()
+                except Exception as kill_err:
+                    logger.error(f"Error while terminating FFmpeg: {kill_err}")
+                job.status = 'error'
+                job.save()
+                return
+
+            # Check file size and truncate
+            if os.path.exists(log_file_path) and os.path.getsize(log_file_path) >= 10 * 1024 * 1024:
+                handler.flush()
+                handler.close()
+                logger.removeHandler(handler)
+                with open(log_file_path, 'w'):
+                    pass  # Truncate the file
+                handler = logging.FileHandler(log_file_path, mode='a')
+                handler.setFormatter(formatter)
+                logger.addHandler(handler)
+
         process.wait()
-        log_file.write(f'\n--- FFmpeg exited with return code {process.returncode} ---\n')
-        log_file.flush()
+        logger.info(f"--- FFmpeg exited with return code {process.returncode} ---")
+
+    finally:
+        handler.close()
+        logger.removeHandler(handler)
 
     time.sleep(3)
-    
     job.refresh_from_db()
     if job.status not in ['stopped', 'error']:
         job.status = 'stopped'
         job.ffmpeg_pid = None
         job.save()
 
-        #Restarting After exit
         time.sleep(5)
         from .tasks import transcoding_start
         transcoding_start.delay(job.id)
-            
+
 
 @shared_task
 def transcoding_start(job_id):
@@ -145,29 +189,6 @@ def transcoding_start(job_id):
         job.status = 'pending'
         job.save()
 
-        log_found = False
-        start_time = time.time()
-        timeout = 10
-
-        for line in process.stdout:
-            log_file.write(line)
-            log_file.flush()
-
-            if 'frame=' in line and 'fps=' in line and 'bitrate=' in line:
-                log_found = True
-                break
-            if time.time() - start_time > timeout:
-                break
-
-        if log_found:
-            job.status='running'
-        else:
-            try:
-                os.kill(process.pid,signal.SIGTERM)
-            except Exception as kill_err:
-                job.status='error'
-
-        job.save()
 
         threading.Thread(target=stream_logs, args=(process, log_file_path, job)).start()
 

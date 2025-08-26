@@ -94,6 +94,7 @@ export default function EditChannel() {
 
     const payload = {
       name,
+      status: "stopped",
       input_type: inputType,
       input_url: inputType === 'hls' ? input : null,
       input_multicast_ip: inputType === 'udp' ? input : null,

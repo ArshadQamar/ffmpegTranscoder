@@ -24,6 +24,16 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 # Auto-discover tasks from all Django apps
 app.autodiscover_tasks()
 
+@app.on_after_finalize.connect
+def restart_jobs(sender, **kwargs):
+    from transcoder.models import TranscodingJob
+    from transcoder.tasks import transcoding_start
+
+    running_jobs = TranscodingJob.objects.filter(status='running')
+    for job in running_jobs:
+        print(f"[Celery] Auto-restarting job: {job.channel.name}")
+        transcoding_start.delay(job.id)
+
 # task for debugging (this is just for testing).
 @app.task(bind=True)
 def debug_task(self):

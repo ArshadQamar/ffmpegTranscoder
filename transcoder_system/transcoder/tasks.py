@@ -4,7 +4,7 @@ from django.utils import timezone
 import subprocess
 import os,signal,re,time,threading,logging
 
-def stream_logs(process, log_file_path, job):
+def stream_logs(process, log_file_path, job, ffmpeg_command=None):
     logger = logging.getLogger(f"ffmpeg_logger_{job.id}")
     logger.setLevel(logging.INFO)
     logger.propagate = False  # prevent logs leaking to celery console
@@ -15,6 +15,11 @@ def stream_logs(process, log_file_path, job):
 
     if not any(isinstance(h, logging.FileHandler) and h.baseFilename == handler.baseFilename for h in logger.handlers):
         logger.addHandler(handler)
+	
+    # Log the command at the start
+    if ffmpeg_command:
+        logger.info(f"=== Starting new FFmpeg job ===")
+        logger.info(f"Command: {' '.join(ffmpeg_command)}")
 
     log_found = False
     start_time = time.time()
@@ -190,7 +195,7 @@ def transcoding_start(job_id):
         job.save()
 
 
-        threading.Thread(target=stream_logs, args=(process, log_file_path, job)).start()
+        threading.Thread(target=stream_logs, args=(process, log_file_path, job, ffmpeg_command)).start()
 
 
     except Exception as e:

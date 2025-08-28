@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [starting, setStarting] = useState({}); // jobID: boolean
   const router = useRouter(); // initialize router
 
 
@@ -31,46 +32,48 @@ export default function Dashboard() {
   }, []);
 
   // Handle start
-  const handleStart = async (jobID) =>{
+  const handleStart = async (jobID) => {
+    setStarting(prev => ({ ...prev, [jobID]: true }));
     console.log(`starting channel with id ${jobID}`);
-    try{
-      //start the job
-      await axios.post(`${apiUrl}/job/${jobID}/start/`)
+    try {
+      // start the job
+      await axios.post(`${apiUrl}/job/${jobID}/start/`);
 
-      //Refetch Updated channel from backend
-      const response = await axios.get(`${apiUrl}/channels`)
-
-      // updating state for UI re render
+      // Refetch Updated channel from backend
+      const response = await axios.get(`${apiUrl}/channels`);
       setChannels(response.data);
 
       let attempt = 0;
       const maxAttempt = 10;
 
-      const pollUntilRunning = async ()=>{
-        while (attempt < maxAttempt){
+      const pollUntilRunning = async () => {
+        while (attempt < maxAttempt) {
           const response = await axios.get(`${apiUrl}/channels`);
-          const updated = response.data.find(ch => ch.job_id === jobID)
+          const updated = response.data.find(ch => ch.job_id === jobID);
 
-          if(updated?.status==='running'){
-            setChannels(response.data)
+          if (updated?.status === 'running' || updated?.status === 'error') {
+            setChannels(response.data);
+            setStarting(prev => ({ ...prev, [jobID]: false }));
             return;
           }
-          await new Promise(resolve => setTimeout(resolve,1000));
+          await new Promise(resolve => setTimeout(resolve, 1000));
           attempt += 1;
         }
-
-        const finalResponse =  await axios.get(`${apiUrl}/channels`);
-        setChannels(finalResponse.data)
-
+        // Final fetch
+        const finalResponse = await axios.get(`${apiUrl}/channels`);
+        setChannels(finalResponse.data);
+        // Check if error or running after polling
+        const updated = finalResponse.data.find(ch => ch.job_id === jobID);
+        if (updated?.status === 'running' || updated?.status === 'error') {
+          setStarting(prev => ({ ...prev, [jobID]: false }));
+        }
       };
-      await pollUntilRunning()
-
-    }catch(error){
-      alert('Error starting job:',error)
+      await pollUntilRunning();
+    } catch (error) {
+      setStarting(prev => ({ ...prev, [jobID]: false }));
+      alert('Error starting job:', error);
     }
-
-        
-  }
+  };
   //Handle stop
   const handleStop = async (jobID)=>{
     try{
@@ -90,7 +93,7 @@ export default function Dashboard() {
   return (
     <main className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">📡 Channel Dashboard</h1>
+        <h1 className="text-xl font-bold">?? Channel Dashboard</h1>
         <div className="flex gap-2">
           <button 
             className="bg-orange-400 text-white px-2 py-1 rounded hover:bg-green-700"
@@ -128,18 +131,18 @@ export default function Dashboard() {
                 <td className="border border-gray-300 px-4 py-1 text-center align-middle">{channel.status}</td>
                 <td className="border border-gray-300 px-4 py-1 text-center align-middle">
                   {
-                    channel.status == "running" ?(
+                    channel.status == "running" ? (
                       <button className="bg-red-500 text-white py-1 px-3 rounded hover:bg-green-500"
-                      onClick={()=>handleStop(channel.job_id)}
+                        onClick={() => handleStop(channel.job_id)}
                       > Stop
                       </button>
-                    ): <button className={`py-1 px-3 rounded text-white 
-                        ${channel.status === "pending" 
-                          ? "bg-gray-400 cursor-not-allowed" 
+                    ) : <button className={`py-1 px-3 rounded text-white 
+                        ${(channel.status === "pending" || starting[channel.job_id])
+                          ? "bg-gray-400 cursor-not-allowed"
                           : "bg-green-500 hover:bg-red-500"
                         }`}
-                       onClick={()=>{handleStart(channel.job_id)}}
-                       disabled={channel.status === "pending"}>
+                        onClick={() => { handleStart(channel.job_id); }}
+                        disabled={channel.status === "pending" || starting[channel.job_id]}>
                       Start
                     </button>
                   }

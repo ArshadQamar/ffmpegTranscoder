@@ -4,6 +4,25 @@ from django.utils import timezone
 import subprocess
 import os,signal,re,time,threading,logging
 
+def watchdog(process,job,logger):
+    """kill ffmpeg if no log appears for certain time"""
+    time.sleep(15)
+    job.refresh_from_db()
+    if job.status == 'pending':
+        logger.warning("No logs after timeout. Killing process")
+        try:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                logger.warning("ffmpeg didnot exit after SIGTERM, forcing kill")
+                process.kill()
+                process.wait()
+        except Exception as e:
+            logger.error("error while killing stuck ffmpeg, check from server")
+        job.status = 'error'
+        job.save()
+
 def stream_logs(
     process,
     log_file_path,
@@ -31,6 +50,9 @@ def stream_logs(
     log_found = False
     start_time = time.time()
     timeout = 10
+
+    # Starting watchdogs
+    threading.Thread(target=watchdog, args=(process,job,logger), daemon=True).start()
 
     try:
         for line in process.stdout:

@@ -19,11 +19,11 @@ class Channel(models.Model):
     ]
 
 
-    # Video Codec Choices
+    # Video Codec Choices (FFmpeg names as values)
     VIDEO_CODEC_CHOICES = [
-        ('h264', 'H.264'),
-        ('h265', 'H.265'),
-        ('mpeg2', 'MPEG-2'),
+        ('libx264', 'H.264'),
+        ('libx265', 'H.265'),
+        ('mpeg2video', 'MPEG-2'),
     ]
 
     # Audio Codec Choices

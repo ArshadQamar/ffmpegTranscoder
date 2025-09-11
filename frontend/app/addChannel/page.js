@@ -280,9 +280,9 @@ export default function CreateChannel() {
               className="w-full p-2 border rounded"
             >
               <option value="">-- Select Video Codec --</option>
-              <option value="h264">H.264</option>
-              <option value="h265">H.265</option>
-              <option value="mpeg2">MPEG-2</option>
+              <option value="libx264">H.264</option>
+              <option value="libx265">H.265</option>
+              <option value="mpeg2video">MPEG-2</option>
             </select>
           </div>
 
@@ -306,6 +306,7 @@ export default function CreateChannel() {
             <label className="block font-semibold mb-1">Audio Gain:</label>
             <input
               type="number"
+              onWheel={e => e.target.blur()}
               step="0.1"
               value={audioGain}
               onChange={(e) => setAudioGain(e.target.value)}
@@ -332,6 +333,7 @@ export default function CreateChannel() {
             <label className="block font-semibold mb-1">Video Bitrate (bps):</label>
             <input
               type="number"
+              onWheel={e => e.target.blur()}
               value={videoBitrate}
               onChange={(e) => setVideoBitrate(e.target.value)}
               className="w-full p-2 border rounded"
@@ -344,6 +346,7 @@ export default function CreateChannel() {
             <label className="block font-semibold mb-1">Audio Bitrate (bps):</label>
             <input
               type="number"
+              onWheel={e => e.target.blur()}
               value={audioBitrate}
               onChange={(e) => setAudioBitrate(e.target.value)}
               className="w-full p-2 border rounded"
@@ -356,6 +359,7 @@ export default function CreateChannel() {
             <label className="block font-semibold mb-1">Buffer Size (bits):</label>
             <input
               type="number"
+              onWheel={e => e.target.blur()}
               value={bufferSize}
               onChange={(e) => setBufferSize(e.target.value)}
               className="w-full p-2 border rounded"
@@ -368,6 +372,7 @@ export default function CreateChannel() {
             <label className="block font-semibold mb-1">SID</label>
             <input
               type="number"
+              onWheel={e => e.target.blur()}
               value={serviceId}
               onChange={(e)=>setServiceId(e.target.value)}
               className="w-full p-2 border rounded"
@@ -379,6 +384,7 @@ export default function CreateChannel() {
             <label className="block font-semibold mb-1">Video PID</label>
             <input
               type="number"
+              onWheel={e => e.target.blur()}
               value={videoPid}
               onChange={(e)=>setVideoPid(e.target.value)}
               className="w-full p-2 border rounded"
@@ -390,6 +396,7 @@ export default function CreateChannel() {
             <label className="block font-semibold mb-1">Audio PID</label>
             <input
               type="number"
+              onWheel={e => e.target.blur()}
               value={audioPid}
               onChange={(e)=>setAudioPid(e.target.value)}
               className="w-full p-2 border rounded"
@@ -400,6 +407,7 @@ export default function CreateChannel() {
             <label className="block font-semibold mb-1">PMT PID</label>
             <input
               type="number"
+              onWheel={e => e.target.blur()}
               value={pmtPid}
               onChange={(e)=>setPmtPid(e.target.value)}
               className="w-full p-2 border rounded"
@@ -410,6 +418,7 @@ export default function CreateChannel() {
             <label className="block font-semibold mb-1">PCR PID</label>
             <input
               type="number"
+              onWheel={e => e.target.blur()}
               value={pcrPid}
               onChange={(e)=>setPcrPid(e.target.value)}
               className="w-full p-2 border rounded"
@@ -514,6 +523,7 @@ export default function CreateChannel() {
             <label className="block font-semibold mb-1">Logo Opacity</label>
             <input
               type="number"
+              onWheel={e => e.target.blur()}
               min="0.0"
               max="1.0"
               step="0.01"

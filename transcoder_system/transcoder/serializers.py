@@ -12,7 +12,7 @@ class ChannelSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Channel
-        fields = "__all__"
+        exclude = ['created_at', 'updated_at']
 
     #Getting status from job db
     def get_status(self, obj):

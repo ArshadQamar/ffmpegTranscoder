@@ -101,6 +101,11 @@ export default function Dashboard() {
             + Channel
           </button>
           <button 
+            className="bg-blue-400 text-white px-2 py-1 rounded hover:bg-gray-700"
+            onClick={() => router.push('/profiles')}>
+            Profiles
+          </button>
+          <button 
             className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700"
             onClick={() => router.push('/deleteChannel')}>
             Delete Channel

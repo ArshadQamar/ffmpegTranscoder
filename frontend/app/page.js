@@ -93,7 +93,7 @@ export default function Dashboard() {
   return (
     <main className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">?? Channel Dashboard</h1>
+        <h1 className="text-xl font-bold">Channel Dashboard</h1>
         <div className="flex gap-2">
           <button 
             className="bg-orange-400 text-white px-2 py-1 rounded hover:bg-green-700"

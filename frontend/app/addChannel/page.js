@@ -41,6 +41,10 @@ export default function CreateChannel() {
   const [pcrPid, setPcrPid] = useState('');
   const [scanType, setScanType] = useState('');
   const [aspectRatio, setAspectRatio] = useState('');
+
+  //json file
+  let [importedFileName, setImportedFileName] = useState(null);
+
   
 
   useEffect(() => {
@@ -54,6 +58,85 @@ export default function CreateChannel() {
         console.error('Error fetching network interfaces:', error);
       });
   }, []);
+
+  //Validating JSON
+
+  const validateChannelJson = (data)=>{
+    const REQUIRED_FIELDS = [
+      "name", "input_type", "output_type", "input_multicast_ip", "output_multicast_ip",
+      "input_network", "output_network", "video_codec", "audio", "audio_gain",
+      "bitrate_mode", "video_bitrate", "audio_bitrate", "buffer_size", "resolution",
+      "frame_rate", "service_id", "video_pid", "audio_pid", "pmt_pid", "pcr_pid",
+      "scan_type", "aspect_ratio", "logo_path", "logo_position", "logo_opacity", 
+      "id", "status", "job_id", "input_url", "input_file", "output_url", "output_file"
+    ];
+    //check missing fields
+    const missing = REQUIRED_FIELDS.filter(f => !(f in data))
+    if (missing.length > 0){
+      return `Missing required fields: ${missing.join(", ")}`
+    }
+    // extra fields
+    const extra = Object.keys(data).filter(f=>!(REQUIRED_FIELDS.includes(f)));
+    if (extra.length > 0){
+      return `Unexpected fields found: ${extra.join(", ")}`;
+    }
+  }
+
+  //Handle JSON upload
+  
+  const handleFileUpload = (e) =>{
+    const file = e.target.files[0]
+    if (!file) {
+      console.error("No valid file not found")
+      return
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (event)=>{
+      try{
+        const data = JSON.parse(event.target.result)
+        const validationError = validateChannelJson(data)
+        if (validationError){
+          alert("Invalid JSON: " + validationError);
+          return
+        }
+        setImportedFileName(file.name)
+        console.log(data)
+        // Fill state with JSON values
+        setName(data.name || "");
+        setInputType(data.input_type || "");
+        setInput(data.input_url || data.input_multicast_ip || data.input_file || "");
+        setSelectedInputNetwork(data.input_network || "");
+        setOutputType(data.output_type || "");
+        setOutput(data.output_url || data.output_multicast_ip || data.output_file || "");
+        setSelectedOutputNetwork(data.output_network || "");
+        setVideoCodec(data.video_codec || "");
+        setAudioCodec(data.audio || "");
+        setAudioGain(data.audio_gain?.toString() || "");
+        setBitrateMode(data.bitrate_mode || "");
+        setVideoBitrate(data.video_bitrate?.toString() || "");
+        setAudioBitrate(data.audio_bitrate?.toString() || "");
+        setBufferSize(data.buffer_size?.toString() || "");
+        setResolution(data.resolution || "");
+        setFrameRate(data.frame_rate?.toString() || "");
+        setServiceId(data.service_id?.toString() || "");
+        setVideoPid(data.video_pid?.toString() || "");
+        setAudioPid(data.audio_pid?.toString() || "");
+        setPmtPid(data.pmt_pid?.toString() || "");
+        setPcrPid(data.pcr_pid?.toString() || "");
+        setScanType(data.scan_type || "");
+        setAspectRatio(data.aspect_ratio || "");
+        setLogoPath(data.logo_path || "");
+        setLogoPosition(data.logo_position || "");
+        setLogoOpacity(data.logo_opacity?.toString() || "");
+
+      }catch(error){
+        alert("Invalid JSON File")
+        console.error("error parsing JSON", error)
+      }
+    }
+    reader.readAsText(file);
+  }
 
   //Handling submit
   const handleSubmit = async (e) => {
@@ -116,7 +199,29 @@ export default function CreateChannel() {
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">📺 Create New Channel</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold mb-6">Create New Channel</h1>
+        <div className='flex gap-2'>
+         <input
+          type='file'
+          id="json-upload"
+          accept='application/json'
+          onChange={handleFileUpload}
+          className="hidden"
+         />
+          <label
+          htmlFor="json-upload"
+          className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+          Import JSON
+          </label>
+            {/* Show file name */}
+            {importedFileName && (
+              <span className="text-gray-700 text-sm">{importedFileName}</span>
+            )}
+
+        </div>
+      </div>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
         {/* Channel Name */}
@@ -459,7 +564,7 @@ export default function CreateChannel() {
           </div>
 
           <div className="mb-4">
-            <label className="block font-semibold mb-1">Aspect Ratio</label>
+            <label className="block font-semibold mb-1">Aspect Ratio:</label>
             <select
               value={aspectRatio}
               onChange={(e) => setAspectRatio(e.target.value)}
@@ -489,7 +594,7 @@ export default function CreateChannel() {
           </div>
 
           {/* Logo Overlay */}
-          <h2 className="text-xl font-semibold mb-4 mt-8">🖼️ Logo Overlay</h2>
+          <h2 className="text-xl font-semibold mb-4 mt-8">Logo Overlay</h2>
 
           {/* Logo Path */}
           <div className="mb-4">
@@ -520,7 +625,7 @@ export default function CreateChannel() {
 
           {/* logo opacity */}
           <div className="mb-4">
-            <label className="block font-semibold mb-1">Logo Opacity</label>
+            <label className="block font-semibold mb-1">Logo Opacity:</label>
             <input
               type="number"
               onWheel={e => e.target.blur()}

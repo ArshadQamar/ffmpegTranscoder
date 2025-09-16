@@ -147,7 +147,7 @@ export default function EditChannel() {
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">?? Edit Channel</h1>
+      <h1 className="text-2xl font-bold mb-6">Edit Channel</h1>
       <form className="space-y-4" onSubmit={handleSubmit}>
         {/* Same UI structure as CreateChannel, adapted to use the state values */}
         {/* Channel Name */}
@@ -292,7 +292,7 @@ export default function EditChannel() {
         )}
 
         {/* Transcoding Settings */}
-        <h2 className="text-xl font-semibold mt-8 mb-4">??? Transcoding Parameters</h2>
+        <h2 className="text-xl font-semibold mt-8 mb-4">Transcoding Parameters</h2>
 
         {/* Reuse the same structure as before */}
         <div className="grid grid-cols-2 gap-4">
@@ -440,7 +440,7 @@ export default function EditChannel() {
 
         
           <div>
-            <label className="block font-semibold mb-1">Scan Type</label>
+            <label className="block font-semibold mb-1">Scan Type:</label>
             <select
               value={scanType}
               onChange={(e) => setScanType(e.target.value)}
@@ -471,7 +471,7 @@ export default function EditChannel() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Aspect Ratio</label>
+            <label className="block font-semibold mb-1">Aspect Ratio:</label>
             <select
               value={aspectRatio}
               onChange={(e) => setAspectRatio(e.target.value)}
@@ -501,7 +501,7 @@ export default function EditChannel() {
         </div>
 
         {/* Logo */}
-        <h2 className="text-xl font-semibold mt-8 mb-4">??? Logo Overlay</h2>
+        <h2 className="text-xl font-semibold mt-8 mb-4">Logo Overlay</h2>
 
         <div>
           <label className="block font-semibold mb-1">Logo Path:</label>
@@ -528,7 +528,7 @@ export default function EditChannel() {
           </p>
         </div>
         <div className="mb-4">
-          <label className="block font-semibold mb-1">Logo Opacity</label>
+          <label className="block font-semibold mb-1">Logo Opacity:</label>
           <input
             type="number"
             onWheel={e => e.target.blur()}

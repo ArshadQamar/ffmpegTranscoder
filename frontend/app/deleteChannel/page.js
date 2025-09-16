@@ -38,7 +38,7 @@ export default function DeleteChannelPage() {
 
   return (
     <main className="p-6">
-      <h1 className="text-xl font-bold mb-4">🗑️ Delete Channels</h1>
+      <h1 className="text-xl font-bold mb-4">Delete Channels</h1>
 
       {loading ? (
         <p>Loading...</p>

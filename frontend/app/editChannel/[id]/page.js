@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter, useParams } from 'next/navigation';
+import Image from 'next/image';
+import TVNLogo from '../../TVN-logo.png';
 
 export default function EditChannel() {
   const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL;
@@ -146,8 +148,18 @@ export default function EditChannel() {
   if (loading) return <p className="p-6">Loading...</p>;
 
   return (
+    <>
+        {/* TVN-logo at absolute top-left of the page */}
+        <div
+          className="absolute top-5 left-4 cursor-pointer z-10"
+          onClick={() => router.push('/')}
+        >
+          <Image src={TVNLogo} alt="TVN Logo" width={90} height={90} priority />
+        </div>
     <main className="p-6 max-w-3xl mx-auto bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen">
-      <h1 className="text-2xl font-bold mb-6">Edit Channel</h1>
+      <div className="flex items-center gap-4 mb-6">
+        <h1 className="text-2xl font-bold">Edit Channel</h1>
+      </div>
       <form className="space-y-4" onSubmit={handleSubmit}>
         {/* Same UI structure as CreateChannel, adapted to use the state values */}
         {/* Channel Name */}
@@ -560,5 +572,6 @@ export default function EditChannel() {
         </button>
       </form>
     </main>
+  </>
   );
 }

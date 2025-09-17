@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Image from 'next/image';
+import TVNLogo from '../TVN-logo.png';
 
 export default function DeleteChannelPage() {
   const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL;
@@ -38,7 +40,18 @@ export default function DeleteChannelPage() {
 
   return (
     <main className="p-6 bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen">
-      <h1 className="text-xl font-bold mb-4">Delete Channels</h1>
+      <div className="flex items-center justify-between mb-6 relative">
+        {/* Left: Profiles heading */}
+        <h1 className="text-2xl font-bold text-black dark:text-white">Delete Channels</h1>
+
+        {/* Center: Logo */}
+        <div 
+          className="absolute left-1/2 transform -translate-x-1/2 cursor-pointer"
+          onClick={() => window.location.href = '/'}
+        >
+          <Image src={TVNLogo} alt="TVN Logo" width={90} height={90} priority />
+        </div>
+      </div>
 
       {loading ? (
         <p>Loading...</p>

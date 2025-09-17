@@ -1,6 +1,8 @@
 'use client'; // Enables client-side interactivity
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import TVNLogo from './TVN-logo.png';
 import axios from 'axios';
 import { resolve } from 'styled-jsx/css';
 
@@ -94,6 +96,11 @@ export default function Dashboard() {
   <main className="p-6 bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen">
       <div className="flex justify-between items-center mb-4 bg-white dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 p-4 rounded">
         <h1 className="text-xl font-bold text-black dark:text-white">Channel Dashboard</h1>
+        <div className="flex-1 flex justify-center">
+          <div className="cursor-pointer w-fit" onClick={() => router.push('/')}> 
+            <Image src={TVNLogo} alt="TVN Logo" width={100} height={100} priority />
+          </div>
+        </div>
         <div className="flex gap-2">
           <button 
             className="bg-orange-400 text-white px-2 py-1 rounded hover:bg-green-700"

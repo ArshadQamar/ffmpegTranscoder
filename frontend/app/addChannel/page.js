@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import TVNLogo from '../TVN-logo.png';
 import axios from 'axios';
 
 
@@ -198,28 +200,39 @@ export default function CreateChannel() {
 
 
   return (
-    <main className="p-6 max-w-3xl mx-auto bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold mb-6">Create New Channel</h1>
-        <div className='flex gap-2'>
-         <input
-          type='file'
-          id="json-upload"
-          accept='application/json'
-          onChange={handleFileUpload}
-          className="hidden"
-         />
-          <label
-          htmlFor="json-upload"
-          className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-          Import JSON
-          </label>
-            {/* Show file name */}
-            {importedFileName && (
-              <span className="text-gray-700 text-sm">{importedFileName}</span>
-            )}
+  <>
+      {/* TVN-logo at absolute top-left of the page */}
+      <div
+        className="absolute top-5 left-4 cursor-pointer z-10"
+        onClick={() => router.push('/')}
+      >
+        <Image src={TVNLogo} alt="TVN Logo" width={90} height={90} priority />
+      </div>
+    
+    <main className="p-6 max-w-3xl mx-auto bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen relative">
 
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold ">Create New Channel</h1>
+        </div>
+        <div className='flex gap-2'>
+          <input
+            type='file'
+            id="json-upload"
+            accept='application/json'
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          <label
+            htmlFor="json-upload"
+            className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Import JSON
+          </label>
+          {/* Show file name */}
+          {importedFileName && (
+            <span className="text-gray-700 text-sm">{importedFileName}</span>
+          )}
         </div>
       </div>
 
@@ -662,5 +675,6 @@ export default function CreateChannel() {
         </button>
       </form>
     </main>
+  </>
   );
 }

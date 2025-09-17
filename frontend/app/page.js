@@ -91,9 +91,9 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">Channel Dashboard</h1>
+  <main className="p-6 bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen">
+      <div className="flex justify-between items-center mb-4 bg-white dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 p-4 rounded">
+        <h1 className="text-xl font-bold text-black dark:text-white">Channel Dashboard</h1>
         <div className="flex gap-2">
           <button 
             className="bg-orange-400 text-white px-2 py-1 rounded hover:bg-green-700"
@@ -117,14 +117,14 @@ export default function Dashboard() {
       {loading ? <p>Loading...</p> : 
       error ? <p className="text-red-500">Error: {error}</p> :(
         <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2">ID</th>
-              <th className="border border-gray-300 px-4 py-2">Name</th>
-              <th className="border border-gray-300 px-4 py-2">Input Type</th>
-              <th className="border border-gray-300 px-4 py-2">Status</th>
-              <th className="border border-gray-300 px-4 py-2">Action</th>
-              <th className="border border-gray-300 px-4 py-2">Modify</th>
+          <thead className="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th className="border border-gray-300 px-4 py-2 text-black dark:text-white">ID</th>
+              <th className="border border-gray-300 px-4 py-2 text-black dark:text-white">Name</th>
+              <th className="border border-gray-300 px-4 py-2 text-black dark:text-white">Input Type</th>
+              <th className="border border-gray-300 px-4 py-2 text-black dark:text-white">Status</th>
+              <th className="border border-gray-300 px-4 py-2 text-black dark:text-white">Action</th>
+              <th className="border border-gray-300 px-4 py-2 text-black dark:text-white">Modify</th>
             </tr>
           </thead>
           <tbody>

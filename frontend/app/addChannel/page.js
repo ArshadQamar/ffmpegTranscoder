@@ -198,7 +198,7 @@ export default function CreateChannel() {
 
 
   return (
-    <main className="p-6 max-w-3xl mx-auto">
+    <main className="p-6 max-w-3xl mx-auto bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold mb-6">Create New Channel</h1>
         <div className='flex gap-2'>
@@ -374,7 +374,7 @@ export default function CreateChannel() {
 
         {/* Transcoding Parameters */}
         <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">🎛️ Transcoding Parameters</h2>
+          <h2 className="text-xl font-semibold mb-4">Transcoding Parameters</h2>
 
           {/* Video Codec */}
           <div className="mb-4">
@@ -474,7 +474,7 @@ export default function CreateChannel() {
 
           {/* Service ID */}
           <div className='mb-4'>
-            <label className="block font-semibold mb-1">SID</label>
+            <label className="block font-semibold mb-1">SID:</label>
             <input
               type="number"
               onWheel={e => e.target.blur()}
@@ -486,7 +486,7 @@ export default function CreateChannel() {
           </div>
           {/* Video PID */}
           <div className='mb-4'>
-            <label className="block font-semibold mb-1">Video PID</label>
+            <label className="block font-semibold mb-1">Video PID:</label>
             <input
               type="number"
               onWheel={e => e.target.blur()}
@@ -498,7 +498,7 @@ export default function CreateChannel() {
           </div>
           {/* Audio PID */}
           <div className='mb-4'>
-            <label className="block font-semibold mb-1">Audio PID</label>
+            <label className="block font-semibold mb-1">Audio PID:</label>
             <input
               type="number"
               onWheel={e => e.target.blur()}
@@ -509,7 +509,7 @@ export default function CreateChannel() {
             />
           </div>
           <div className='mb-4'>
-            <label className="block font-semibold mb-1">PMT PID</label>
+            <label className="block font-semibold mb-1">PMT PID:</label>
             <input
               type="number"
               onWheel={e => e.target.blur()}
@@ -520,7 +520,7 @@ export default function CreateChannel() {
             />
           </div>
           <div className='mb-4'>
-            <label className="block font-semibold mb-1">PCR PID</label>
+            <label className="block font-semibold mb-1">PCR PID:</label>
             <input
               type="number"
               onWheel={e => e.target.blur()}

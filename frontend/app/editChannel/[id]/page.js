@@ -146,7 +146,7 @@ export default function EditChannel() {
   if (loading) return <p className="p-6">Loading...</p>;
 
   return (
-    <main className="p-6 max-w-3xl mx-auto">
+    <main className="p-6 max-w-3xl mx-auto bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Edit Channel</h1>
       <form className="space-y-4" onSubmit={handleSubmit}>
         {/* Same UI structure as CreateChannel, adapted to use the state values */}

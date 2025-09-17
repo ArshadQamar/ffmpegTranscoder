@@ -35,8 +35,8 @@ export default function Profiles(){
 // Render states
 
 return (
-  <div className="p-6">
-    <h1 className="text-2xl font-bold mb-4">Profiles</h1>
+  <div className="p-6 bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen">
+    <h1 className="text-2xl font-bold mb-4 text-black dark:text-white">Profiles</h1>
     {loading ? (
       <p className="text-gray-500">Loading channels...</p>
     ) : error ? (
@@ -48,11 +48,11 @@ return (
         {channels.map((ch) => (
           <li
             key={ch.id}
-            className="p-4 bg-white shadow rounded-md flex justify-between items-center"
+            className="p-4 bg-white dark:bg-gray-800 shadow rounded-md flex justify-between items-center"
           >
             <div>
-              <p className="font-semibold">{ch.name}</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-semibold text-black dark:text-white">{ch.name}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-300">
                 Input: {ch.input_multicast_ip} | 
                 Codec: {ch.video_codec} | 
                 Bitrate: {ch.video_bitrate} | 

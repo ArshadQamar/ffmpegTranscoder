@@ -59,21 +59,21 @@ export default function DeleteChannelPage() {
         <p className="text-red-500">{error}</p>
       ) : (
         <table className="w-full border-collapse border border-gray-300">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-100 dark:bg-gray-800">
             <tr>
-              <th className="border px-4 py-2">ID</th>
-              <th className="border px-4 py-2">Name</th>
-              <th className="border px-4 py-2">Status</th>
-              <th className="border px-4 py-2">Delete</th>
+              <th className="border border-gray-300 px-4 py-2 text-black dark:text-white">ID</th>
+              <th className="border border-gray-300 px-4 py-2 text-black dark:text-white">Name</th>
+              <th className="border border-gray-300 px-4 py-2 text-black dark:text-white">Status</th>
+              <th className="border border-gray-300 px-4 py-2 text-black dark:text-white">Delete</th>
             </tr>
           </thead>
           <tbody>
             {channels.map((channel) => (
               <tr key={channel.id}>
-                <td className="border px-4 py-2 text-center">{channel.id}</td>
-                <td className="border px-4 py-2 text-center">{channel.name}</td>
-                <td className="border px-4 py-2 text-center">{channel.status}</td>
-                <td className="border px-4 py-2 text-center">
+                <td className="border border-gray-300 px-4 py-1 text-center align-middle">{channel.id}</td>
+                <td className="border border-gray-300 px-4 py-1 text-center align-middle">{channel.name}</td>
+                <td className="border border-gray-300 px-4 py-1 text-center align-middle">{channel.status}</td>
+                <td className="border border-gray-300 px-4 py-1 text-center align-middle">
                   {channel.status === 'running' ? (
                     <button
                       className="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed"

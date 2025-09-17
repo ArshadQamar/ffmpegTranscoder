@@ -2,8 +2,14 @@ from celery import shared_task
 from .models import TranscodingJob, Channel
 from django.utils import timezone
 import subprocess
-import os,signal,re,time,threading,logging
+import os,signal,re,time,threading,logging, psutil
 
+def is_process_alive(pid):
+    try:
+        return psutil.pid_exists(pid) and psutil.Process(pid).is_running()
+    except psutil.NoSuchProcess:
+        return False
+    
 def watchdog(process,job,logger):
     """kill ffmpeg if no log appears for certain time"""
     time.sleep(15)
@@ -146,6 +152,11 @@ def transcoding_start(job_id, retry_count=0):
         channel = job.channel
     except TranscodingJob.DoesNotExist:
         print(f"job with id {job_id} not found")
+        return
+    
+    # ✅ Check if job already has a running process
+    if job.ffmpeg_pid and is_process_alive(job.ffmpeg_pid):
+        print(f"Job {job_id} already running with PID {job.ffmpeg_pid}, skipping start")
         return
 
     # Build ffmpeg command

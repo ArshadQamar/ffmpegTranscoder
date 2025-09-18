@@ -140,8 +140,17 @@ export default function EditChannel() {
       } else {
         alert(`Unexpected response: ${res.status}`);
       }
-    } catch (err) {
-      alert(`Failed to update channel: ${err.response?.data?.detail || err.message}`);
+    } catch(error){
+      if(error.response?.data?.error) {
+        //converting object into readable string
+        const messages = error.response.data.error
+        .map(err => `${err.fields}: ${err.message}`)
+        .join('\n')
+        alert(`Failed to create channel:\n${messages}`);
+      }else{
+        alert(`Failed to create channel:\n${messages}`);
+      }
+    }
     }
   };
 

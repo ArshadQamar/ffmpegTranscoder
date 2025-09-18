@@ -192,7 +192,15 @@ export default function CreateChannel() {
       }
 
     }catch(error){
-      alert(`Failed to create channel. Error: ${error.response?.data?.detail || error.message}`);
+      if(error.response?.data?.error) {
+        //converting object into readable string
+        const messages = error.response.data.error
+        .map(err => `${err.fields}: ${err.message}`)
+        .join('\n')
+        alert(`Failed to create channel:\n${messages}`);
+      }else{
+        alert(`Failed to create channel:\n${messages}`);
+      }
     }
     
     

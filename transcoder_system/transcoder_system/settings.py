@@ -78,6 +78,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'transcoder_system.wsgi.application'
 
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "transcoder_system.exceptions.custom_exception_handler"
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

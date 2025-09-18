@@ -150,8 +150,7 @@ export default function EditChannel() {
       }else{
         alert(`Failed to create channel:\n${messages}`);
       }
-    }
-    }
+     }
   };
 
   if (loading) return <p className="p-6">Loading...</p>;

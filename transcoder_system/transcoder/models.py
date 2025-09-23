@@ -81,7 +81,7 @@ class Channel(models.Model):
         validators=[MULTICAST_IP_PORT_VALIDATOR]
         )
     input_network=models.CharField(max_length=100,blank=True,null=True)
-    input_file=models.CharField(blank=True,null=True)
+    input_file=models.CharField(blank=True,null=True,max_length=500)
 
     #Output Details
     output_type = models.CharField(max_length=10, choices=OUTPUT_TYPES)
@@ -93,7 +93,7 @@ class Channel(models.Model):
         validators=[MULTICAST_IP_PORT_VALIDATOR]
     )
     output_network = models.CharField(max_length=100, blank=True, null=True)
-    output_file = models.CharField(blank=True, null=True)
+    output_file = models.CharField(blank=True, null=True,max_length=500)
 
     #Parameters
     video_codec=models.CharField(max_length=50,choices=VIDEO_CODEC_CHOICES, default='h264')

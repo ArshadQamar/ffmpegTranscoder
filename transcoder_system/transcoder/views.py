@@ -1,6 +1,4 @@
-import psutil
-from django.http import JsonResponse
-from django.shortcuts import render
+import psutil, time
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -82,3 +80,32 @@ class NetworkInterfaceView(APIView):
             })
 
         return Response(data)
+
+class SystemMetricsView(APIView):
+    def get(self, request):
+        #CPU Usage
+        cpu_usage = psutil.cpu_percent(interval=0.5)
+
+        #RAM Usage
+        mem = psutil.virtual_memory()
+        ram_usage = mem.percent
+
+        #Network Bandwidth
+        net1 = psutil.net_io_counters()
+        time.sleep(1)
+        net2 = psutil.net_io_counters()
+
+        in_bytes = net2.bytes_recv - net1.bytes_recv
+        out_bytes = net2.bytes_sent - net1.bytes_sent
+
+        in_mbps = (in_bytes*8)/(1027*1024)
+        out_mbps = (out_bytes*8)/(1024*1024)
+        
+        return Response({
+            "cpu_usage": cpu_usage,
+            "ram_usage": ram_usage,
+            "network":{
+                "in_mbps": in_mbps,
+                "out_mbps":out_mbps
+            }
+        })

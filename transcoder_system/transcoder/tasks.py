@@ -171,7 +171,7 @@ def transcoding_start(job_id, retry_count=0):
             '-i', f"udp://{channel.input_multicast_ip}?localaddr={channel.input_network}"
         ]
     elif channel.input_type == 'file':
-        ffmpeg_command += ['-i', channel.input_file.path]
+        ffmpeg_command += ['-i', channel.input_file]
 
     # Logo/overlay
     if channel.logo_path:
@@ -236,7 +236,7 @@ def transcoding_start(job_id, retry_count=0):
             f'udp://{channel.output_multicast_ip}?localaddr={channel.output_network}&pkt_size=1316'
         ]
     elif channel.output_type == 'file':
-        ffmpeg_command += [channel.output_file.path]
+        ffmpeg_command += [channel.output_file]
 
     # Print command for debugging
     print(f"FFmpeg Command: {' '.join(ffmpeg_command)}")

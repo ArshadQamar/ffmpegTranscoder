@@ -1,6 +1,20 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 
+MULTICAST_IP_PORT_VALIDATOR = RegexValidator(
+    regex=r'^(22[4-9]|23\d)\.'                                  # First octet: 224–239
+          r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.'             # Second octet: 0–255
+          r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.'             # Third octet: 0–255
+          r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)'               # Fourth octet: 0–255
+          r':('
+          r'[1-9]\d{0,3}'                                       # 1–9999
+          r'|[1-5]\d{4}'                                        # 10000–59999
+          r'|60000'                                             # 60000
+          r')$',
+    message="Enter a valid multicast address like '239.x.x.x:port'. "
+            "IP must be 224.0.0.0-239.255.255.255 and port between 1-60000."
+)
+
 
 
 # Create your models here.
@@ -60,35 +74,72 @@ class Channel(models.Model):
     #Input Details
     input_type=models.CharField(max_length=10, choices=INPUT_TYPES)
     input_url=models.CharField(max_length=500,blank=True,null=True)
-    input_multicast_ip=models.CharField(max_length=50,blank=True,null=True)
+    input_multicast_ip=models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        validators=[MULTICAST_IP_PORT_VALIDATOR]
+        )
     input_network=models.CharField(max_length=100,blank=True,null=True)
-    input_file=models.FileField(upload_to="uploads/input/",blank=True,null=True)
+    input_file=models.CharField(blank=True,null=True)
 
     #Output Details
     output_type = models.CharField(max_length=10, choices=OUTPUT_TYPES)
     output_url = models.CharField(max_length=500, blank=True, null=True)
-    output_multicast_ip = models.CharField(max_length=50, blank=True, null=True)
+    output_multicast_ip = models.CharField(
+        max_length=50, 
+        blank=True, 
+        null=True,
+        validators=[MULTICAST_IP_PORT_VALIDATOR]
+    )
     output_network = models.CharField(max_length=100, blank=True, null=True)
-    output_file = models.FileField(upload_to="uploads/output/", blank=True, null=True)
+    output_file = models.CharField(blank=True, null=True)
 
     #Parameters
     video_codec=models.CharField(max_length=50,choices=VIDEO_CODEC_CHOICES, default='h264')
     audio=models.CharField(max_length=50,choices=AUDIO_CODEC_CHOICES, default='aac')
     audio_gain=models.FloatField(default=1.0,null=True,validators=[MinValueValidator(0.1), MaxValueValidator(10)])
     
-    bitrate_mode=models.CharField(max_length=5,choices=[('cbr','CBR'),('vbr','VBR')],default='vbr')
-    video_bitrate=models.IntegerField(help_text="2.4M, 4.8M")
-    audio_bitrate=models.IntegerField(help_text="128k, 256k")
-    buffer_size=models.IntegerField(help_text="4.8M,9.6M")
+    bitrate_mode=models.CharField(
+        max_length=5,
+        choices=[('cbr','CBR'),('vbr','VBR')],
+        default='vbr')
+    video_bitrate=models.IntegerField(
+        help_text="2.4M, 4.8M",
+        validators=[MinValueValidator(1000), MaxValueValidator(10000000)]
+        )
+    audio_bitrate=models.IntegerField(
+        help_text="128k, 256k",
+        validators=[MinValueValidator(32000), MaxValueValidator(256000)]
+        )
+    buffer_size=models.IntegerField(
+        help_text="4.8M,9.6M",
+        validators=[MinValueValidator(1000), MaxValueValidator(10000000)]
+        )
     scan_type = models.CharField(max_length=20, choices=[('progressive', 'Progressive'), ('interlaced', 'Interlaced')], default='progressive')
     resolution=models.CharField(max_length=10,choices=RESOLUTION_CHOICES,default='1920x1080')
     frame_rate=models.IntegerField(choices=FRAMERATE_CHOICES, default=30)
-    service_id = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(9999)])
-    video_pid = models.IntegerField(default=101, help_text="Video PID")
-    audio_pid = models.IntegerField(default=102, help_text="Audio PID")
+    service_id = models.IntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(9999)]
+        )
+    video_pid = models.IntegerField(
+        default=101, help_text="Video PID",
+        validators=[MinValueValidator(1)]
+        )
+    audio_pid = models.IntegerField(
+        default=102, help_text="Audio PID",
+        validators=[MinValueValidator(1)]
+        )
     aspect_ratio = models.CharField(default='16:9',choices=[('16:9','16:9'),('4:3','4:3')],max_length=5)
-    pmt_pid = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(9999)], null=True)
-    pcr_pid = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(9999)], null=True)
+    pmt_pid = models.IntegerField(
+        default=4096,
+        validators=[MinValueValidator(32), MaxValueValidator(8186)], 
+        )
+    pcr_pid = models.IntegerField(
+        default=256,
+        validators=[MinValueValidator(32), MaxValueValidator(8186)], 
+        )
 
 
     logo_path=models.CharField(max_length=500,blank=True, null=True)

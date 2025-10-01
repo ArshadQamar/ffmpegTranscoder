@@ -5,7 +5,6 @@ import Image from 'next/image';
 import TVNLogo from '../TVN-logo.png';
 import axios from 'axios';
 
-
 export default function CreateChannel() {
   // Environment variables
   const apiUrl = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL;
@@ -47,13 +46,11 @@ export default function CreateChannel() {
   //json file
   let [importedFileName, setImportedFileName] = useState(null);
 
-  
-
   useEffect(() => {
     // Fetch network interfaces from API
     axios.get(`${apiUrl}/netiface`)
       .then(response => {
-        setNetwork(response.data); // Set the fetched network interfaces in state
+        setNetwork(response.data);
         console.log(response.data)
       })
       .catch(error => {
@@ -62,7 +59,6 @@ export default function CreateChannel() {
   }, []);
 
   //Validating JSON
-
   const validateChannelJson = (data)=>{
     const REQUIRED_FIELDS = [
       "name", "input_type", "output_type", "input_multicast_ip", "output_multicast_ip",
@@ -85,7 +81,6 @@ export default function CreateChannel() {
   }
 
   //Handle JSON upload
-  
   const handleFileUpload = (e) =>{
     const file = e.target.files[0]
     if (!file) {
@@ -188,501 +183,548 @@ export default function CreateChannel() {
         alert(`channel created succesfully`);
         router.push('/')
       }else{
-        alert(`unexpected response ${responsestatus}`);
+        alert(`unexpected response ${response.status}`);
       }
 
     }catch(error){
       if(error.response?.data?.error) {
-        //converting object into readable string
         const messages = error.response.data.error
         .map(err => `${err.fields}: ${err.message}`)
         .join('\n')
         alert(`Failed to create channel:\n${messages}`);
       }else{
-        alert(`Failed to create channel:\n${messages}`);
+        alert(`Failed to create channel`);
       }
     }
-    
-    
   }
 
-
   return (
-  <>
-      {/* TVN-logo at absolute top-left of the page */}
-      <div
-        className="absolute top-5 left-4 cursor-pointer z-10"
-        onClick={() => router.push('/')}
-      >
-        <Image src={TVNLogo} alt="TVN Logo" width={90} height={90} priority />
-      </div>
-    
-    <main className="p-6 max-w-3xl mx-auto bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen relative">
-
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold ">Create New Channel</h1>
-        </div>
-        <div className='flex gap-2'>
-          <input
-            type='file'
-            id="json-upload"
-            accept='application/json'
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-          <label
-            htmlFor="json-upload"
-            className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            Import JSON
-          </label>
-          {/* Show file name */}
-          {importedFileName && (
-            <span className="text-gray-700 text-sm">{importedFileName}</span>
-          )}
-        </div>
-      </div>
-
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        {/* Channel Name */}
-        <div>
-          <label className="block font-semibold mb-1">Channel Name:</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full p-2 border rounded"
-            placeholder="Enter channel name"
-          />
-        </div>
-
-        {/* Input Type */}
-        <div>
-          <label className="block font-semibold mb-1">Input Type:</label>
-          <select
-            value={inputType}
-            onChange={(e) => setInputType(e.target.value)}
-            className="w-full p-2 border rounded"
-          >
-            <option value="">-- Select Input Type --</option>
-            <option value="hls">HLS</option>
-            <option value="udp">UDP</option>
-            <option value="file">File</option>
-          </select>
-        </div>
-
-        {/* Placeholder for conditional input fields */}
-        <div className="mt-4">
-          {inputType === 'hls' && (
-            <div>
-              <label className="block font-semibold mb-1">Input URL:</label>
-              <input
-                value={input}
-                type="text"
-                className="w-full p-2 border rounded"
-                placeholder="http://example.com/stream.m3u8"
-                onChange={(e)=>setInput(e.target.value)}
-              />
+    <>
+      {/* Header with Centered Logo */}
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Create Channel Text on Left */}
+            <div className="flex items-center">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Create New Channel</h1>
             </div>
-          )}
 
-          {inputType === 'udp' && (
-            <div>
-              <label className="block font-semibold mb-1">Multicast IP:</label>
-              <input
-                value={input}
-                type="text"
-                className="w-full p-2 border rounded"
-                placeholder="239.0.0.1:5000"
-                onChange={(e)=>setInput(e.target.value)}
-
-              />
-              <label className="block font-semibold mb-1">Network Interface:</label>
-              <select
-                value={selectedInputNetwork}
-                onChange={(e) => setSelectedInputNetwork(e.target.value)}
-                className="w-full p-2 border rounded"
+            {/* Centered TVN Logo */}
+            <div className="absolute left-1/2 transform -translate-x-1/2">
+              <div 
+                className="cursor-pointer transition-transform hover:scale-105"
+                onClick={() => router.push('/')}
               >
-                <option value="">-- Select Network Interface --</option>
-                {network.map((iface, index) => (
-                  <option key={index} value={iface.ip_addresses}>
-                    {iface.name} {iface.ip_addresses}
-                  </option>
-                ))}
-              </select>
+                <Image src={TVNLogo} alt="TVN Logo" width={120} height={120} priority />
+              </div>
             </div>
-          )}
 
-          {inputType === 'file' && (
-            <div>
-              
-              <label className="block font-semibold mb-1">Upload File:</label>
-              <input 
-              value={input}
-              type="text" 
-              className="w-full p-2 border rounded" 
-              onChange={(e)=>setInput(e.target.value)}
-              placeholder='/file/path/video.mp4'
-              />
-            </div>
-          )}
-        </div>
-        {/* Output Type */}
-        <div className="mt-6">
-          <label className="block font-semibold mb-1">Output Type:</label>
-          <select
-            value={outputType}
-            onChange={(e) => setOutputType(e.target.value)}
-            className="w-full p-2 border rounded"
-          >
-            <option value="">-- Select Output Type --</option>
-            <option value="hls">HLS</option>
-            <option value="udp">UDP</option>
-            <option value="file">File</option>
-          </select>
-        </div>
-
-        {/* Output Fields */}
-        {outputType === 'udp' && (
-          <div className="mt-4">
-            <label className="block font-semibold mb-1">Output Multicast IP:</label>
-            <input
-              value={output}
-              type="text"
-              className="w-full p-2 border rounded"
-              placeholder="239.0.0.2:6000"
-              onChange={(e)=>setOutput(e.target.value)}
-            />
-            <label className="block font-semibold mb-1 mt-2">Output Network Interface:</label>
-            <select
-              value={selectedOutputNetwork}
-              onChange={(e) => setSelectedOutputNetwork(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">-- Select Network Interface --</option>
-              {network.map((iface, index) => (
-                <option key={index} value={iface.ip_addresses}>
-                  {iface.name} {iface.ip_addresses}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-          {outputType === 'hls' && (
-            <div>
-              <label className="block font-semibold mb-1">Input URL:</label>
+            {/* JSON Import Button */}
+            <div className="flex items-center gap-3">
               <input
-                type="text"
-                className="w-full p-2 border rounded"
-                placeholder="http://example.com/stream.m3u8"
-                onChange={(e)=>setOutput(e.target.value)}
+                type='file'
+                id="json-upload"
+                accept='application/json'
+                onChange={handleFileUpload}
+                className="hidden"
               />
+              <label
+                htmlFor="json-upload"
+                className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+              >
+                Import JSON
+              </label>
+              {importedFileName && (
+                <span className="text-gray-700 dark:text-gray-300 text-sm bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded">
+                  {importedFileName}
+                </span>
+              )}
             </div>
-          )}
-
-          {outputType === 'file' && (
-            <div>
-              <label className="block font-semibold mb-1">Upload File:</label>
-              <input 
-              type="text" 
-              className="w-full p-2 border rounded"
-              onChange={(e)=>setOutput(e.target.value)}
-              placeholder='/file/path/name.mp4'
-              />
-            </div>
-          )}
-
-        {/* Transcoding Parameters */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Transcoding Parameters</h2>
-
-          {/* Video Codec */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Video Codec:</label>
-            <select
-              value={videoCodec}
-              onChange={(e) => setVideoCodec(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">-- Select Video Codec --</option>
-              <option value="libx264">H.264</option>
-              <option value="libx265">H.265</option>
-              <option value="mpeg2video">MPEG-2</option>
-            </select>
           </div>
-
-          {/* Audio Codec */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Audio Codec:</label>
-            <select
-              value={audioCodec}
-              onChange={(e) => setAudioCodec(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">-- Select Audio Codec --</option>
-              <option value="aac">AAC</option>
-              <option value="ac3">AC3</option>
-              <option value="mp2">MP2</option>
-            </select>
-          </div>
-
-          {/* Audio Gain */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Audio Gain:</label>
-            <input
-              type="number"
-              onWheel={e => e.target.blur()}
-              step="0.1"
-              value={audioGain}
-              onChange={(e) => setAudioGain(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="e.g. 1.0, 0.1(-90)"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Bitrate Mode:</label>
-            <select
-              value={bitrateMode}
-              onChange={(e) => setBitrateMode(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">-- Select Bitrate Mode --</option>
-              <option value="cbr">CBR</option>
-              <option value="vbr">VBR</option>
-            </select>
-          </div>
-
-          {/* Video Bitrate */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Video Bitrate (bps):</label>
-            <input
-              type="number"
-              onWheel={e => e.target.blur()}
-              value={videoBitrate}
-              onChange={(e) => setVideoBitrate(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="e.g. 2400000"
-            />
-          </div>
-
-          {/* Audio Bitrate */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Audio Bitrate (bps):</label>
-            <input
-              type="number"
-              onWheel={e => e.target.blur()}
-              value={audioBitrate}
-              onChange={(e) => setAudioBitrate(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="e.g. 128000"
-            />
-          </div>
-
-          {/* Buffer Size */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Buffer Size (bits):</label>
-            <input
-              type="number"
-              onWheel={e => e.target.blur()}
-              value={bufferSize}
-              onChange={(e) => setBufferSize(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="e.g. 4800000"
-            />
-          </div>
-
-          {/* Service ID */}
-          <div className='mb-4'>
-            <label className="block font-semibold mb-1">SID:</label>
-            <input
-              type="number"
-              onWheel={e => e.target.blur()}
-              value={serviceId}
-              onChange={(e)=>setServiceId(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder='(1-9999)'
-            />
-          </div>
-          {/* Video PID */}
-          <div className='mb-4'>
-            <label className="block font-semibold mb-1">Video PID:</label>
-            <input
-              type="number"
-              onWheel={e => e.target.blur()}
-              value={videoPid}
-              onChange={(e)=>setVideoPid(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder='(1-9999)'
-            />
-          </div>
-          {/* Audio PID */}
-          <div className='mb-4'>
-            <label className="block font-semibold mb-1">Audio PID:</label>
-            <input
-              type="number"
-              onWheel={e => e.target.blur()}
-              value={audioPid}
-              onChange={(e)=>setAudioPid(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder='(1-9999)'
-            />
-          </div>
-          <div className='mb-4'>
-            <label className="block font-semibold mb-1">PMT PID:</label>
-            <input
-              type="number"
-              onWheel={e => e.target.blur()}
-              value={pmtPid}
-              onChange={(e)=>setPmtPid(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder='(1-9999)'
-            />
-          </div>
-          <div className='mb-4'>
-            <label className="block font-semibold mb-1">PCR PID:</label>
-            <input
-              type="number"
-              onWheel={e => e.target.blur()}
-              value={pcrPid}
-              onChange={(e)=>setPcrPid(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder='(1-9999)'
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Scan Type:</label>
-            <select
-              value={scanType}
-              onChange={(e) => setScanType(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">-- Select Scan type --</option>
-              <option value="progressive">Progressive</option>
-              <option value="interlaced">Interlaced</option>
-            </select>
-          </div>
-
-          {/* Resolution */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Resolution:</label>
-            <select
-              value={resolution}
-              onChange={(e) => setResolution(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">-- Select Resolution --</option>
-              <option value="1920x1080">1920x1080</option>
-              <option value="1280x720">1280x720</option>
-              <option value="1024x576">1024x576</option>
-              <option value="768x576">768x576</option>
-              <option value="854x480">854x480</option>
-              <option value="640x360">640x360</option>
-              <option value="426x240">426x240</option>
-            </select>
-          </div>
-
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Aspect Ratio:</label>
-            <select
-              value={aspectRatio}
-              onChange={(e) => setAspectRatio(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">-- Select Aspect Ratio --</option>
-              <option value="16:9">16:9</option>
-              <option value="4:3">4:3</option>
-            </select>
-          </div>
-
-          {/* Frame Rate */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Frame Rate (fps):</label>
-            <select
-              value={frameRate}
-              onChange={(e) => setFrameRate(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">-- Select Frame Rate --</option>
-              <option value="24">24</option>
-              <option value="25">25</option>
-              <option value="30">30</option>
-              <option value="50">50</option>
-              <option value="60">60</option>
-            </select>
-          </div>
-
-          {/* Logo Overlay */}
-          <h2 className="text-xl font-semibold mb-4 mt-8">Logo Overlay</h2>
-
-          {/* Logo Path */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Logo Path:</label>
-            <input
-              type="text"
-              value={logoPath}
-              onChange={(e) => setLogoPath(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="e.g. /logos/channel-logo.png"
-            />
-          </div>
-
-          {/* Logo Position */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Logo Position (FFmpeg overlay):</label>
-            <input
-              type="text"
-              value={logoPosition}
-              onChange={(e) => setLogoPosition(e.target.value)}
-              placeholder="e.g., x=10:y=10 or x=W-w-10:y=H-h-10"
-              className="w-full p-2 border rounded"
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              Format: <code>x=10:y=10</code> or <code>x=W-w-10:y=H-h-10</code>
-            </p>
-          </div>
-
-          {/* logo opacity */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Logo Opacity:</label>
-            <input
-              type="number"
-              onWheel={e => e.target.blur()}
-              min="0.0"
-              max="1.0"
-              step="0.01"
-              value={logoOpacity}
-              onChange={(e) => setLogoOpacity(e.target.value)}
-              placeholder="Enter a value between 0.0 and 1.0"
-              className="w-full p-2 border rounded"
-              title="Opacity must be between 0.0 and 1.0"
-            />
-            {(logoOpacity !== '' && (parseFloat(logoOpacity) < 0 || parseFloat(logoOpacity) > 1)) && (
-            <p className="text-red-500 text-sm mt-1">Opacity must be between 0.0 and 1.0</p>
-            )}
-
-          </div>
-            {/* Cross-field Validation: Show if only some fields are filled */}
-              {((logoPath || logoPosition || logoOpacity) &&
-                (!logoPath || !logoPosition || !logoOpacity)) && (
-                <p className="text-red-500 text-sm mb-4">
-                  Please fill in all logo fields: Path, Position, and Opacity.
-                </p>
-            )}
-
         </div>
+      </header>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="bg-blue-600 text-white py-2 px-4 rounded mt-6"
-        >
-          Create Channel
-        </button>
-      </form>
-    </main>
-  </>
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Channel Configuration Card */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Channel Configuration</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Create a new channel with the settings below</p>
+          </div>
+
+          <form className="p-6 space-y-8" onSubmit={handleSubmit}>
+            {/* Basic Information */}
+            <div className="space-y-6">
+              <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-blue-500 pl-3">Basic Information</h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Channel Name</label>
+                <input 
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors" 
+                  placeholder="Enter channel name"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Input Configuration */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Input Type</label>
+                    <select
+                      value={inputType}
+                      onChange={(e) => setInputType(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="">Select Input Type</option>
+                      <option value="hls">HLS</option>
+                      <option value="udp">UDP</option>
+                      <option value="file">File</option>
+                    </select>
+                  </div>
+
+                  {inputType === 'hls' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Input URL</label>
+                      <input
+                        value={input}
+                        type="text"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        placeholder="http://example.com/stream.m3u8"
+                        onChange={(e)=>setInput(e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {inputType === 'udp' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Input Multicast IP</label>
+                        <input
+                          value={input}
+                          type="text"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="239.0.0.1:5000"
+                          onChange={(e)=>setInput(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Network Interface</label>
+                        <select
+                          value={selectedInputNetwork}
+                          onChange={(e) => setSelectedInputNetwork(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        >
+                          <option value="">Select Network Interface</option>
+                          {network.map((iface, index) => (
+                            <option key={index} value={iface.ip_addresses}>
+                              {iface.name} ({iface.ip_addresses})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </>
+                  )}
+
+                  {inputType === 'file' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Path</label>
+                      <input 
+                        value={input}
+                        type="text" 
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        onChange={(e)=>setInput(e.target.value)}
+                        placeholder='/file/path/video.mp4'
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Output Configuration */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Type</label>
+                    <select
+                      value={outputType}
+                      onChange={(e) => setOutputType(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="">Select Output Type</option>
+                      <option value="hls">HLS</option>
+                      <option value="udp">UDP</option>
+                      <option value="file">File</option>
+                    </select>
+                  </div>
+
+                  {outputType === 'udp' && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Multicast IP</label>
+                        <input
+                          value={output}
+                          type="text"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="239.0.0.2:6000"
+                          onChange={(e)=>setOutput(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Network Interface</label>
+                        <select
+                          value={selectedOutputNetwork}
+                          onChange={(e) => setSelectedOutputNetwork(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        >
+                          <option value="">Select Network Interface</option>
+                          {network.map((iface, index) => (
+                            <option key={index} value={iface.ip_addresses}>
+                              {iface.name} ({iface.ip_addresses})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {outputType === 'hls' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output URL</label>
+                      <input
+                        value={output}
+                        type="text"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        placeholder="http://example.com/stream.m3u8"
+                        onChange={(e)=>setOutput(e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {outputType === 'file' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output File Path</label>
+                      <input 
+                        value={output}
+                        type="text" 
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        onChange={(e)=>setOutput(e.target.value)}
+                        placeholder='/file/path/name.mp4'
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Transcoding Parameters */}
+            <div className="space-y-6">
+              <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-green-500 pl-3">Transcoding Parameters</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Video Codec */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video Codec</label>
+                  <select
+                    value={videoCodec}
+                    onChange={(e) => setVideoCodec(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                  >
+                    <option value="">Select Video Codec</option>
+                    <option value="libx264">H.264</option>
+                    <option value="libx265">H.265</option>
+                    <option value="mpeg2video">MPEG-2</option>
+                  </select>
+                </div>
+
+                {/* Audio Codec */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio Codec</label>
+                  <select
+                    value={audioCodec}
+                    onChange={(e) => setAudioCodec(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                  >
+                    <option value="">Select Audio Codec</option>
+                    <option value="aac">AAC</option>
+                    <option value="ac3">AC3</option>
+                    <option value="mp2">MP2</option>
+                  </select>
+                </div>
+
+                {/* Audio Gain */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio Gain</label>
+                  <input
+                    type="number"
+                    onWheel={e => e.target.blur()}
+                    step="0.1"
+                    value={audioGain}
+                    onChange={(e) => setAudioGain(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="e.g. 1.0"
+                  />
+                </div>
+
+                {/* Bitrate Mode */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bitrate Mode</label>
+                  <select
+                    value={bitrateMode}
+                    onChange={(e) => setBitrateMode(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                  >
+                    <option value="">Select Bitrate Mode</option>
+                    <option value="cbr">CBR</option>
+                    <option value="vbr">VBR</option>
+                  </select>
+                </div>
+
+                {/* Video Bitrate */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video Bitrate (bps)</label>
+                  <input
+                    type="number"
+                    onWheel={e => e.target.blur()}
+                    value={videoBitrate}
+                    onChange={(e) => setVideoBitrate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="e.g. 2400000"
+                  />
+                </div>
+
+                {/* Audio Bitrate */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio Bitrate (bps)</label>
+                  <input
+                    type="number"
+                    onWheel={e => e.target.blur()}
+                    value={audioBitrate}
+                    onChange={(e) => setAudioBitrate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="e.g. 128000"
+                  />
+                </div>
+
+                {/* Buffer Size */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Buffer Size (bits)</label>
+                  <input
+                    type="number"
+                    onWheel={e => e.target.blur()}
+                    value={bufferSize}
+                    onChange={(e) => setBufferSize(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="e.g. 4800000"
+                  />
+                </div>
+
+                {/* Service ID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Service ID</label>
+                  <input
+                    type="number"
+                    onWheel={e => e.target.blur()}
+                    value={serviceId}
+                    onChange={(e)=>setServiceId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="1-9999"
+                  />
+                </div>
+
+                {/* Video PID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video PID</label>
+                  <input
+                    type="number"
+                    onWheel={e => e.target.blur()}
+                    value={videoPid}
+                    onChange={(e)=>setVideoPid(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="1-9999"
+                  />
+                </div>
+
+                {/* Audio PID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio PID</label>
+                  <input
+                    type="number"
+                    onWheel={e => e.target.blur()}
+                    value={audioPid}
+                    onChange={(e)=>setAudioPid(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="1-9999"
+                  />
+                </div>
+
+                {/* PMT PID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PMT PID</label>
+                  <input
+                    type="number"
+                    onWheel={e => e.target.blur()}
+                    value={pmtPid}
+                    onChange={(e)=>setPmtPid(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="1-9999"
+                  />
+                </div>
+
+                {/* PCR PID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PCR PID</label>
+                  <input
+                    type="number"
+                    onWheel={e => e.target.blur()}
+                    value={pcrPid}
+                    onChange={(e)=>setPcrPid(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="1-9999"
+                  />
+                </div>
+
+                {/* Scan Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Scan Type</label>
+                  <select
+                    value={scanType}
+                    onChange={(e) => setScanType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                  >
+                    <option value="">Select Scan Type</option>
+                    <option value="progressive">Progressive</option>
+                    <option value="interlaced">Interlaced</option>
+                  </select>
+                </div>
+
+                {/* Resolution */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Resolution</label>
+                  <select
+                    value={resolution}
+                    onChange={(e) => setResolution(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                  >
+                    <option value="">Select Resolution</option>
+                    <option value="1920x1080">1920x1080</option>
+                    <option value="1280x720">1280x720</option>
+                    <option value="1024x576">1024x576</option>
+                    <option value="768x576">768x576</option>
+                    <option value="854x480">854x480</option>
+                    <option value="640x360">640x360</option>
+                    <option value="426x240">426x240</option>
+                  </select>
+                </div>
+
+                {/* Aspect Ratio */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aspect Ratio</label>
+                  <select
+                    value={aspectRatio}
+                    onChange={(e) => setAspectRatio(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                  >
+                    <option value="">Select Aspect Ratio</option>
+                    <option value="16:9">16:9</option>
+                    <option value="4:3">4:3</option>
+                  </select>
+                </div>
+
+                {/* Frame Rate */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Frame Rate (fps)</label>
+                  <select
+                    value={frameRate}
+                    onChange={(e) => setFrameRate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                  >
+                    <option value="">Select Frame Rate</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                    <option value="60">60</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Logo Overlay */}
+            <div className="space-y-6">
+              <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-purple-500 pl-3">Logo Overlay</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo Path</label>
+                  <input
+                    type="text"
+                    value={logoPath}
+                    onChange={(e) => setLogoPath(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="/logos/channel-logo.png"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo Position</label>
+                  <input
+                    type="text"
+                    value={logoPosition}
+                    onChange={(e) => setLogoPosition(e.target.value)}
+                    placeholder="x=10:y=10"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Format: x=10:y=10 or x=W-w-10:y=H-h-10</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo Opacity</label>
+                  <input
+                    type="number"
+                    onWheel={e => e.target.blur()}
+                    min="0.0"
+                    max="1.0"
+                    step="0.01"
+                    value={logoOpacity}
+                    onChange={(e) => setLogoOpacity(e.target.value)}
+                    placeholder="0.0 - 1.0"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                  />
+                  {logoOpacity !== '' && (parseFloat(logoOpacity) < 0 || parseFloat(logoOpacity) > 1) && (
+                    <p className="text-red-500 text-xs mt-1">Opacity must be between 0.0 and 1.0</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Cross-field Validation */}
+              {((logoPath || logoPosition || logoOpacity) && (!logoPath || !logoPosition || !logoOpacity)) && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                  <p className="text-yellow-800 dark:text-yellow-200 text-sm">Please fill in all logo fields: Path, Position, and Opacity.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => router.push('/')}
+                className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium"
+              >
+                Create Channel
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </>
   );
 }

@@ -36,7 +36,6 @@ msgpack==1.1.0
 packaging==24.2
 prompt_toolkit==3.0.50
 psutil==7.0.0
-psycopg2-binary==2.9.9
 pyasn1==0.6.1
 pyasn1_modules==0.4.1
 pycparser==2.22

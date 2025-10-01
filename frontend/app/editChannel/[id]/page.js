@@ -180,6 +180,18 @@ export default function EditChannel() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Back Button */}
+        <div className="flex justify-start mb-6">
+          <button 
+            onClick={() => router.push('/')}
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Dashboard
+          </button>
+        </div>
         {/* Channel Configuration Card */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">

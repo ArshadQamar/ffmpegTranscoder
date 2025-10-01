@@ -295,7 +295,7 @@ export default function Dashboard() {
       {/* Channels Table */}
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
-          <div className="px-6 py-4 border-b border-white/20 dark:border-gray-700/50">
+          <div className="px-6 py-4 border-b border-gray-300/70 dark:border-gray-600/70">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Channels</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">Manage your streaming channels</p>
           </div>
@@ -325,7 +325,7 @@ export default function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-white/50 dark:bg-gray-700/50 border-b border-white/20 dark:border-gray-600/50">
+                  <tr className="bg-white/50 dark:bg-gray-700/50 border-b border-gray-300/70 dark:border-gray-600/70">
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Channel</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Input Type</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
@@ -333,27 +333,41 @@ export default function Dashboard() {
                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Modify</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200/50 dark:divide-gray-700/30">
+                <tbody className="divide-y divide-gray-300/50 dark:divide-gray-600/50">
                   {channels.map((channel, index) => (
                     <tr 
                       key={channel.id} 
                       className={`
-                        hover:bg-white/50 dark:hover:bg-gray-700/30 transition-colors
-                        ${index % 2 === 0 ? 'bg-white/30 dark:bg-gray-800/30' : 'bg-white/10 dark:bg-gray-800/10'}
+                        transition-colors duration-200
+                        ${channel.status === 'running' 
+                          ? 'bg-green-300/80 dark:bg-green-900/40 border-l-4 border-l-green-500' 
+                          : index % 2 === 0 
+                            ? 'bg-white/30 dark:bg-gray-800/30' 
+                            : 'bg-white/10 dark:bg-gray-800/10'
+                        }
+                        hover:bg-white/50 dark:hover:bg-gray-700/30
                       `}
                     >
-                      <td className="px-6 py-4 border-r border-gray-200/30 dark:border-gray-700/30">
+                      <td className="px-6 py-4 border-r border-gray-300/50 dark:border-gray-600/50">
                         <div>
-                          <div className="font-medium text-gray-900 dark:text-white">{channel.name}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">ID: {channel.id}</div>
+                          <div className={`font-medium ${channel.status === 'running' ? 'text-green-900 dark:text-green-100' : 'text-gray-900 dark:text-white'}`}>
+                            {channel.name}
+                          </div>
+                          <div className={`text-sm ${channel.status === 'running' ? 'text-green-700 dark:text-green-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                            ID: {channel.id}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 border-r border-gray-200/30 dark:border-gray-700/30">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100/80 dark:bg-blue-900/80 text-blue-800 dark:text-blue-200 backdrop-blur-sm">
+                      <td className="px-6 py-4 border-r border-gray-300/50 dark:border-gray-600/50">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm ${
+                          channel.status === 'running'
+                            ? 'bg-green-200/80 dark:bg-green-800/80 text-green-800 dark:text-green-200'
+                            : 'bg-blue-100/80 dark:bg-blue-900/80 text-blue-800 dark:text-blue-200'
+                        }`}>
                           {channel.input_type?.toUpperCase() || 'N/A'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 border-r border-gray-200/30 dark:border-gray-700/30">
+                      <td className="px-6 py-4 border-r border-gray-300/50 dark:border-gray-600/50">
                         <div className="flex items-center">
                           <div className={`w-2 h-2 rounded-full mr-2 ${
                             channel.status === 'running' ? 'bg-green-500' :
@@ -361,7 +375,7 @@ export default function Dashboard() {
                             'bg-gray-400'
                           }`}></div>
                           <span className={`font-medium ${
-                            channel.status === 'running' ? 'text-green-600 dark:text-green-400' :
+                            channel.status === 'running' ? 'text-green-700 dark:text-green-300' :
                             channel.status === 'pending' ? 'text-yellow-600 dark:text-yellow-400' :
                             'text-gray-600 dark:text-gray-400'
                           }`}>
@@ -369,7 +383,7 @@ export default function Dashboard() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center border-r border-gray-200/30 dark:border-gray-700/30">
+                      <td className="px-6 py-4 text-center border-r border-gray-300/50 dark:border-gray-600/50">
                         {channel.status === "running" ? (
                           <button 
                             className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg transition-all duration-200 flex items-center gap-2 mx-auto backdrop-blur-sm border border-white/20"
@@ -420,7 +434,11 @@ export default function Dashboard() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button 
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg transition-all duration-200 flex items-center gap-2 mx-auto backdrop-blur-sm border border-white/20"
+                          className={`px-4 py-2 rounded-lg text-sm font-medium shadow-lg transition-all duration-200 flex items-center gap-2 mx-auto backdrop-blur-sm border border-white/20 ${
+                            channel.status === 'running'
+                              ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white'
+                              : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
+                          }`}
                           onClick={() => {
                             if (channel.status === 'running') {
                               alert('Please stop the channel before editing');

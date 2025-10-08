@@ -173,6 +173,8 @@ def transcoding_start(job_id, retry_count=0):
     elif channel.input_type == 'file':
         ffmpeg_command += ['-i', channel.input_file]
 
+    
+
     # Logo/overlay
     if channel.logo_path:
         raw_position = channel.logo_position
@@ -201,6 +203,8 @@ def transcoding_start(job_id, retry_count=0):
         '-c:a', channel.audio,
         '-b:a', str(channel.audio_bitrate),
         '-bufsize', str(channel.buffer_size),
+        '-x264opts', 'nal-hrd=cbr:force-cfr=1',
+        '-fps_mode', 'auto',
         '-s', channel.resolution,
         '-aspect', str(channel.aspect_ratio),
         '-r', str(channel.frame_rate),

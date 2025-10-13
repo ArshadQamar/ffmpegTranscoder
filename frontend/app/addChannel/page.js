@@ -752,7 +752,7 @@ export default function CreateChannel() {
                               value={profile.pmt_pid}
                               onChange={(e) => updateAbrProfile(index, 'pmt_pid', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                              placeholder="1-9999"
+                              placeholder="37-8186"
                             />
                           </div>
 
@@ -765,7 +765,7 @@ export default function CreateChannel() {
                               value={profile.pcr_pid}
                               onChange={(e) => updateAbrProfile(index, 'pcr_pid', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                              placeholder="1-9999"
+                              placeholder="37-8186"
                             />
                           </div>
 
@@ -954,7 +954,7 @@ export default function CreateChannel() {
                       value={pmtPid}
                       onChange={(e)=>setPmtPid(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      placeholder="1-9999"
+                      placeholder="37-8186"
                     />
                   </div>
                 )}
@@ -969,7 +969,7 @@ export default function CreateChannel() {
                       value={pcrPid}
                       onChange={(e)=>setPcrPid(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      placeholder="1-9999"
+                      placeholder="37-8186"
                     />
                   </div>
                 )}

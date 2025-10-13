@@ -4,6 +4,8 @@ from django.utils import timezone
 import subprocess
 import os,signal,re,time,threading,logging, psutil
 
+
+
 def is_process_alive(pid):
     try:
         return psutil.pid_exists(pid) and psutil.Process(pid).is_running()
@@ -154,6 +156,7 @@ def transcoding_start(job_id, retry_count=0):
         print(f"job with id {job_id} not found")
         return
     
+    
     # ✅ Check if job already has a running process
     if job.ffmpeg_pid and is_process_alive(job.ffmpeg_pid):
         print(f"Job {job_id} already running with PID {job.ffmpeg_pid}, skipping start")
@@ -173,74 +176,151 @@ def transcoding_start(job_id, retry_count=0):
     elif channel.input_type == 'file':
         ffmpeg_command += ['-i', channel.input_file]
 
-    
+    #-------------------ABR------------------------------------#
+    if channel.is_abr and hasattr(channel, 'abr') and channel.abr.exists():
+        num_profiles = channel.abr.count() 
 
-    # Logo/overlay
-    if channel.logo_path:
-        raw_position = channel.logo_position
-        ffmpeg_position = raw_position.replace('x=', '').replace('y=', '')
-        if channel.scan_type == "interlaced":
-            ffmpeg_command += [
-                '-i', channel.logo_path, '-filter_complex',
-                f'[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[0][logo]overlay={ffmpeg_position}'
-            ]
+        # Build basic filter complex - just split streams# Build basic filter complex - just split streams
+        filter_parts = []
+        if channel.scan_type == 'progressive':
+            filter_parts.append(f"[0:v]yadif,split={num_profiles}" + ''.join(f"[v{i}]" for i in range(num_profiles)))
         else:
+            filter_parts.append(f"[0:v]split={num_profiles}" + ''.join(f"[v{i}]" for i in range(num_profiles)))
+
+        # Scale each video stream to target resolution
+        for i, profile in enumerate(channel.abr.all()):
+            filter_parts.append(f"[v{i}]scale={profile.resolution}[vout{i}]")
+
+        # Audio split and volume
+        audio_gain = channel.audio_gain if channel.audio_gain else 1.0
+        filter_parts.append(f"[0:a]asplit={num_profiles}" + ''.join(f"[a{i}]" for i in range(num_profiles)))
+        for i in range(num_profiles):
+            filter_parts.append(f"[a{i}]volume={audio_gain}[aout{i}]")
+
+        # Combine all filter parts
+        filter_complex = ';'.join(filter_parts)
+        ffmpeg_command += ['-filter_complex', filter_complex]    
+
+        # Global parameters for all streams
+        ffmpeg_command += [
+            '-c:v', channel.video_codec,
+            '-preset', 'fast',
+            '-x264opts', 'nal-hrd=cbr:force-cfr=1', 
+            '-aspect', str(channel.aspect_ratio),
+            '-r', str(channel.frame_rate),
+        ]   
+
+        # Configure each output stream
+        for i,profile in enumerate(channel.abr.all()):
             ffmpeg_command += [
-                '-i', channel.logo_path, '-filter_complex',
-                f'[0:v]yadif[v0];[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[v0][logo]overlay={ffmpeg_position}'
+            f'-b:v:{i}', str(profile.video_bitrate),
+            f'-minrate:{i}', str(profile.video_bitrate),
+            f'-maxrate:{i}', str(profile.video_bitrate), 
+            f'-bufsize:{i}', str(profile.buffer_size),
             ]
-    elif channel.scan_type == "progressive":
-        ffmpeg_command += ['-filter_complex', '[0:v]yadif[v0]', '-map', '[v0]', '-map', '0:a']
+        
+            # Stream-specific audio parameters
+            ffmpeg_command += [
+                f'-b:a:{i}', str(profile.audio_bitrate),
+            ]
+            
+            # Map the streams for this output
+            ffmpeg_command += [
+                '-map', f'[vout{i}]',
+                '-map', f'[aout{i}]',
+            ]
+            # Output-specific configuration
+            if profile.output_type == 'udp':
+                ffmpeg_command += [
+                    '-f', 'mpegts',
+                    '-streamid', f'0:{profile.video_pid}',
+                    '-streamid', f'1:{profile.audio_pid}',
+                    '-mpegts_service_id', str(profile.service_id),
+                    '-mpegts_pmt_start_pid', str(profile.pmt_pid),
+                    '-mpegts_start_pid', str(profile.pcr_pid),
+                    '-muxrate', str(profile.muxrate),                    
+                ]
+                ffmpeg_command += [
+                    f'udp://{profile.output_multicast_ip}?localaddr={profile.output_network}&pkt_size=1316'
+                ]   
 
-    # Video & Audio codec, bitrate, resolution, etc.
-    ffmpeg_command += [
-        '-c:v', channel.video_codec, '-preset', 'fast',
-        '-b:v', str(channel.video_bitrate),
-        *(
-            ['-minrate', str(channel.video_bitrate), '-maxrate', str(channel.video_bitrate)]
-            if channel.bitrate_mode.lower() == 'cbr' else []
-        ),
-        '-c:a', channel.audio,
-        '-b:a', str(channel.audio_bitrate),
-        '-bufsize', str(channel.buffer_size),
-        '-x264opts', 'nal-hrd=cbr:force-cfr=1',
-        '-fps_mode', 'auto',
-        '-s', channel.resolution,
-        '-aspect', str(channel.aspect_ratio),
-        '-r', str(channel.frame_rate),
-        '-metadata', f'service_name={channel.name}'
-    ]
+            elif profile.output_type == 'hls':
+                ffmpeg_command += [
+                    '-f', 'hls', '-hls_time', '10', '-hls_list_size', '6',
+                    '-hls_flags', 'delete_segments', profile.output_url
+                ]
+            
 
-    if channel.scan_type == 'interlaced':
+
+
+    # ------------------Single Channel-------------------------#
+    # Logo/overlay
+    else:
+        if channel.logo_path:
+            raw_position = channel.logo_position
+            ffmpeg_position = raw_position.replace('x=', '').replace('y=', '')
+            if channel.scan_type == "interlaced":
+                ffmpeg_command += [
+                    '-i', channel.logo_path, '-filter_complex',
+                    f'[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[0][logo]overlay={ffmpeg_position}'
+                ]
+            else:
+                ffmpeg_command += [
+                    '-i', channel.logo_path, '-filter_complex',
+                    f'[0:v]yadif[v0];[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[v0][logo]overlay={ffmpeg_position}'
+                ]
+        elif channel.scan_type == "progressive":
+            ffmpeg_command += ['-filter_complex', '[0:v]yadif[v0]', '-map', '[v0]', '-map', '0:a']
+
+        # Video & Audio codec, bitrate, resolution, etc.
         ffmpeg_command += [
-            '-flags', '+ilme+ildct',
-            '-field_order', 'tt'
+            '-c:v', channel.video_codec, '-preset', 'fast',
+            '-b:v', str(channel.video_bitrate),
+            *(
+                ['-minrate', str(channel.video_bitrate), '-maxrate', str(channel.video_bitrate)]
+                if channel.bitrate_mode.lower() == 'cbr' else []
+            ),
+            '-c:a', channel.audio,
+            '-b:a', str(channel.audio_bitrate),
+            '-bufsize', str(channel.buffer_size),
+            '-x264opts', 'nal-hrd=cbr:force-cfr=1',
+            '-fps_mode', 'auto',
+            '-s', channel.resolution,
+            '-aspect', str(channel.aspect_ratio),
+            '-r', str(channel.frame_rate),
+            '-metadata', f'service_name={channel.name}'
         ]
 
-    if channel.audio_gain:
-        ffmpeg_command += ['-af', f'volume={channel.audio_gain}']
+        if channel.scan_type == 'interlaced':
+            ffmpeg_command += [
+                '-flags', '+ilme+ildct',
+                '-field_order', 'tt'
+            ]
 
-    # Output Handling
-    if channel.output_type == 'hls':
-        ffmpeg_command += [
-            '-f', 'hls', '-hls_time', '10', '-hls_list_size', '6',
-            '-hls_flags', 'delete_segments', channel.output_url
-        ]
-    elif channel.output_type == 'udp':
-        ffmpeg_command += [
-            '-streamid', f'0:{channel.video_pid}', '-streamid', f'1:{channel.audio_pid}',
-            '-mpegts_service_id', str(channel.service_id)
-        ]
-        if channel.pmt_pid:
-            ffmpeg_command += ['-mpegts_pmt_start_pid', str(channel.pmt_pid)]
-        if channel.pcr_pid:
-            ffmpeg_command += ['-mpegts_start_pid', str(channel.pcr_pid)]
-        ffmpeg_command += [
-            '-f', 'mpegts', '-ttl', '50',
-            f'udp://{channel.output_multicast_ip}?localaddr={channel.output_network}&pkt_size=1316'
-        ]
-    elif channel.output_type == 'file':
-        ffmpeg_command += [channel.output_file]
+        if channel.audio_gain:
+            ffmpeg_command += ['-af', f'volume={channel.audio_gain}']
+
+        # Output Handling
+        if channel.output_type == 'hls':
+            ffmpeg_command += [
+                '-f', 'hls', '-hls_time', '10', '-hls_list_size', '6',
+                '-hls_flags', 'delete_segments', channel.output_url
+            ]
+        elif channel.output_type == 'udp':
+            ffmpeg_command += [
+                '-streamid', f'0:{channel.video_pid}', '-streamid', f'1:{channel.audio_pid}',
+                '-mpegts_service_id', str(channel.service_id)
+            ]
+            if channel.pmt_pid:
+                ffmpeg_command += ['-mpegts_pmt_start_pid', str(channel.pmt_pid)]
+            if channel.pcr_pid:
+                ffmpeg_command += ['-mpegts_start_pid', str(channel.pcr_pid)]
+            ffmpeg_command += [
+                '-f', 'mpegts', '-ttl', '50',
+                f'udp://{channel.output_multicast_ip}?localaddr={channel.output_network}&pkt_size=1316'
+            ]
+        elif channel.output_type == 'file':
+            ffmpeg_command += [channel.output_file]
 
     # Print command for debugging
     print(f"FFmpeg Command: {' '.join(ffmpeg_command)}")

@@ -215,6 +215,7 @@ class ABR(models.Model):
         null=True,
         validators=[MULTICAST_IP_PORT_VALIDATOR]
     )
+    output_network = models.CharField(max_length=100, blank=True, null=True)
 
     video_bitrate = models.IntegerField(validators=[MinValueValidator(1000), MaxValueValidator(10000000)])
     audio_bitrate = models.IntegerField(validators=[MinValueValidator(32000), MaxValueValidator(256000)])

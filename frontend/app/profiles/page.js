@@ -36,6 +36,116 @@ export default function Profiles(){
       URL.revokeObjectURL(url);
     }
 
+    // Helper function to render channel details based on type
+    const renderChannelDetails = (channel) => {
+        if (channel.is_abr && channel.abr_profiles && channel.abr_profiles.length > 0) {
+            // ABR Channel - Show input and all output profiles
+            return (
+                <div className="space-y-4 mb-4">
+                    {/* Input Section */}
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+                            </svg>
+                            Input Stream
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span className="text-gray-500 dark:text-gray-400 block">Input IP</span>
+                                <span className="font-mono text-gray-900 dark:text-white">{channel.input_multicast_ip || 'N/A'}</span>
+                            </div>
+                            <div>
+                                <span className="text-gray-500 dark:text-gray-400 block">Codec</span>
+                                <span className="text-gray-900 dark:text-white">{channel.video_codec || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Output Profiles Section */}
+                    <div className="space-y-3">
+                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                            ABR Output Profiles ({channel.abr_profiles.length})
+                        </h4>
+                        {channel.abr_profiles.map((profile, index) => (
+                            <div key={profile.id} className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">
+                                        Profile {index + 1}
+                                    </span>
+                                    <span className="text-xs text-blue-600 dark:text-blue-400">
+                                        {profile.resolution || 'N/A'}
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                        <span className="text-blue-600 dark:text-blue-400 block">Output IP</span>
+                                        <span className="font-mono text-blue-800 dark:text-blue-200">{profile.output_multicast_ip || 'N/A'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-blue-600 dark:text-blue-400 block">Video Bitrate</span>
+                                        <span className="text-blue-800 dark:text-blue-200">
+                                            {profile.video_bitrate ? `${(profile.video_bitrate / 1000000).toFixed(1)} Mbps` : 'N/A'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="text-blue-600 dark:text-blue-400 block">Audio Bitrate</span>
+                                        <span className="text-blue-800 dark:text-blue-200">
+                                            {profile.audio_bitrate ? `${(profile.audio_bitrate / 1000).toFixed(0)} kbps` : 'N/A'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="text-blue-600 dark:text-blue-400 block">Service ID</span>
+                                        <span className="text-blue-800 dark:text-blue-200">{profile.service_id || 'N/A'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        } else {
+            // Regular Channel - Show standard details
+            return (
+                <div className="space-y-3 mb-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span className="text-gray-500 dark:text-gray-400 block">Input IP</span>
+                            <span className="font-mono text-gray-900 dark:text-white">{channel.input_multicast_ip || 'N/A'}</span>
+                        </div>
+                        <div>
+                            <span className="text-gray-500 dark:text-gray-400 block">Output IP</span>
+                            <span className="font-mono text-gray-900 dark:text-white">{channel.output_multicast_ip || 'N/A'}</span>
+                        </div>
+                        <div>
+                            <span className="text-gray-500 dark:text-gray-400 block">Codec</span>
+                            <span className="text-gray-900 dark:text-white">{channel.video_codec || 'N/A'}</span>
+                        </div>
+                        <div>
+                            <span className="text-gray-500 dark:text-gray-400 block">Bitrate</span>
+                            <span className="text-gray-900 dark:text-white">
+                                {channel.video_bitrate ? `${(channel.video_bitrate / 1000000).toFixed(1)} Mbps` : 'N/A'}
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-gray-500 dark:text-gray-400 block">Resolution</span>
+                            <span className="text-gray-900 dark:text-white">{channel.resolution || 'N/A'}</span>
+                        </div>
+                        <div>
+                            <span className="text-gray-500 dark:text-gray-400 block">Audio</span>
+                            <span className="text-gray-900 dark:text-white">
+                                {channel.audio_bitrate ? `${(channel.audio_bitrate / 1000).toFixed(0)} kbps` : 'N/A'} {channel.audio || ''}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    };
+
     return (
       <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 p-4 sm:p-6">
         {/* Animated Background Elements */}
@@ -73,6 +183,12 @@ export default function Profiles(){
                 <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">{channels.length}</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Total Profiles</div>
               </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
+                  {channels.filter(ch => ch.is_abr).length}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">ABR Channels</div>
+              </div>
             </div>
           </div>
 
@@ -97,6 +213,9 @@ export default function Profiles(){
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Available Profiles</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {channels.length} profile{channels.length !== 1 ? 's' : ''} available for export
+                {channels.filter(ch => ch.is_abr).length > 0 && 
+                  ` • ${channels.filter(ch => ch.is_abr).length} ABR channel${channels.filter(ch => ch.is_abr).length !== 1 ? 's' : ''}`
+                }
               </p>
             </div>
 
@@ -121,17 +240,30 @@ export default function Profiles(){
                   {channels.map((channel) => (
                     <div 
                       key={channel.id}
-                      className="bg-gradient-to-br from-white/90 to-white/70 dark:from-gray-800/90 dark:to-gray-700/70 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/40 dark:border-gray-600/40 hover:shadow-xl hover:transform hover:scale-105 transition-all duration-300 group"
+                      className={`bg-gradient-to-br backdrop-blur-sm rounded-xl p-6 shadow-lg border hover:shadow-xl hover:transform hover:scale-105 transition-all duration-300 group ${
+                        channel.is_abr 
+                          ? 'from-purple-50/90 to-blue-50/70 dark:from-purple-900/20 dark:to-blue-800/20 border-purple-200/40 dark:border-purple-600/40' 
+                          : 'from-white/90 to-white/70 dark:from-gray-800/90 dark:to-gray-700/70 border-white/40 dark:border-gray-600/40'
+                      }`}
                     >
                       {/* Channel Header */}
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/60 dark:to-blue-800/60 rounded-lg flex items-center justify-center">
-                            <span className="text-lg">📺</span>
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            channel.is_abr 
+                              ? 'bg-gradient-to-br from-purple-100 to-blue-200 dark:from-purple-900/60 dark:to-blue-800/60' 
+                              : 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/60 dark:to-blue-800/60'
+                          }`}>
+                            <span className="text-lg">{channel.is_abr ? '🔄' : '📺'}</span>
                           </div>
                           <div>
                             <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                               {channel.name}
+                              {channel.is_abr && (
+                                <span className="ml-2 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 px-2 py-1 rounded-full">
+                                  ABR
+                                </span>
+                              )}
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">ID: {channel.id}</p>
                           </div>
@@ -145,32 +277,17 @@ export default function Profiles(){
                         </span>
                       </div>
 
-                      {/* Channel Details */}
-                      <div className="space-y-3 mb-4">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400 block">Input IP</span>
-                            <span className="font-mono text-gray-900 dark:text-white">{channel.input_multicast_ip || 'N/A'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400 block">Output IP</span>
-                            <span className="font-mono text-gray-900 dark:text-white">{channel.output_multicast_ip || 'N/A'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400 block">Codec</span>
-                            <span className="text-gray-900 dark:text-white">{channel.video_codec || 'N/A'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500 dark:text-gray-400 block">Bitrate</span>
-                            <span className="text-gray-900 dark:text-white">{channel.video_bitrate || 'N/A'}</span>
-                          </div>
-                        </div>
-                      </div>
+                      {/* Channel Details - Dynamic based on channel type */}
+                      {renderChannelDetails(channel)}
 
                       {/* Action Button */}
                       <button
                         onClick={() => handleDownload(channel)}
-                        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium shadow-lg transition-all duration-200 flex items-center justify-center gap-2 backdrop-blur-sm border border-white/20 hover:shadow-blue-500/25 hover:scale-105 group/btn"
+                        className={`w-full text-white px-4 py-3 rounded-lg text-sm font-medium shadow-lg transition-all duration-200 flex items-center justify-center gap-2 backdrop-blur-sm border border-white/20 hover:shadow-blue-500/25 hover:scale-105 group/btn ${
+                          channel.is_abr
+                            ? 'bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 hover:shadow-purple-500/25'
+                            : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
+                        }`}
                       >
                         <svg className="w-4 h-4 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -196,8 +313,10 @@ export default function Profiles(){
                 <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300">About Profiles</h4>
                 <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
                   Each profile contains the complete channel configuration including input/output settings, 
-                  codec parameters, and streaming details. Download these JSON files for backup or to 
-                  replicate channels across different instances.
+                  codec parameters, and streaming details. 
+                  <span className="font-semibold"> ABR channels </span> 
+                  show multiple output profiles with different bitrates and resolutions. 
+                  Download these JSON files for backup or to replicate channels across different instances.
                 </p>
               </div>
             </div>

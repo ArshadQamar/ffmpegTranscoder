@@ -1,9 +1,25 @@
 from celery import shared_task
 from .models import TranscodingJob, Channel
+from rest_framework.exceptions import ValidationError
 from django.utils import timezone
-import subprocess
+import subprocess, socket, struct
 import os,signal,re,time,threading,logging, psutil
 
+
+def is_multicast_active(address, timeout=3):
+    try:
+        ip, port = address.split(":")
+        port = int(port)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        sock.settimeout(timeout)
+        sock.bind(("",port))
+        mreq = struct.pack("4sl", socket.inet_aton(ip), socket.INADDR_ANY)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        sock.recvfrom(2048)
+        sock.close()
+        return True
+    except:
+        return False
 
 
 def is_process_alive(pid):
@@ -12,6 +28,25 @@ def is_process_alive(pid):
     except psutil.NoSuchProcess:
         return False
     
+def is_ffmpeg_process(pid):
+    try:
+        if not psutil.pid_exists(pid):
+            return False
+        
+        process = psutil.Process(pid)
+        if not process.is_running():
+            return False
+            
+        # Check if it's an FFmpeg process
+        process_name = process.name().lower()
+        cmdline = ' '.join(process.cmdline()).lower()
+        
+        # Check if process name or command contains 'ffmpeg'
+        return 'ffmpeg' in process_name or 'ffmpeg' in cmdline
+        
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        return False
+
 def watchdog(process,job,logger):
     """kill ffmpeg if no log appears for certain time"""
     time.sleep(15)
@@ -104,6 +139,7 @@ def stream_logs(
         process.wait()
         logger.info(f"--- FFmpeg exited with return code {process.returncode} ---")
 
+
     finally:
         handler.close()
         logger.removeHandler(handler)
@@ -156,11 +192,18 @@ def transcoding_start(job_id, retry_count=0):
         print(f"job with id {job_id} not found")
         return
     
-    
-    # ✅ Check if job already has a running process
+    # Check if job already has a running process
     if job.ffmpeg_pid and is_process_alive(job.ffmpeg_pid):
-        print(f"Job {job_id} already running with PID {job.ffmpeg_pid}, skipping start")
-        return
+        if is_ffmpeg_process(job.ffmpeg_pid):
+            print(f"Job {job_id} already running with PID {job.ffmpeg_pid}, skipping start")
+            return
+        else:
+            print(f"Stale PID {job.ffmpeg_pid} found, clearing it")
+            job.ffmpeg_pid = None
+            job.save()
+            
+
+
 
     # Build ffmpeg command
     ffmpeg_command = ['ffmpeg']
@@ -178,14 +221,44 @@ def transcoding_start(job_id, retry_count=0):
 
     #-------------------ABR------------------------------------#
     if channel.is_abr and hasattr(channel, 'abr') and channel.abr.exists():
-        num_profiles = channel.abr.count() 
+        num_profiles = channel.abr.count()
 
-        # Build basic filter complex - just split streams# Build basic filter complex - just split streams
+        # Build basic filter complex - handle logo if exists
         filter_parts = []
-        if channel.scan_type == 'progressive':
-            filter_parts.append(f"[0:v]yadif,split={num_profiles}" + ''.join(f"[v{i}]" for i in range(num_profiles)))
+        
+        # Check if logo exists and has valid path (same as single channel)
+        has_logo = hasattr(channel, 'logo_path') and channel.logo_path and channel.logo_path.strip()
+        
+        if has_logo:
+            # Process logo position (same as single channel)
+            raw_position = getattr(channel, 'logo_position', 'x=10:y=10')
+            ffmpeg_position = raw_position.replace('x=', '').replace('y=', '')
+            logo_opacity = getattr(channel, 'logo_opacity', 1.0)
+            
+            # Add logo input to ffmpeg command
+            ffmpeg_command += ['-i', channel.logo_path]
+            
+            # Create logo filter with opacity and format (same as single channel)
+            logo_filter = f"[1:v]format=rgba,colorchannelmixer=aa={logo_opacity}[logo]"
+            filter_parts.append(logo_filter)
+            
+            # Apply overlay based on scan type
+            if channel.scan_type == 'progressive':
+                # For progressive: apply deinterlacing first, then overlay
+                filter_parts.append(f"[0:v]yadif[deint_video]")
+                filter_parts.append(f"[deint_video][logo]overlay={ffmpeg_position}[logo_video]")
+            else:
+                # For interlaced: apply overlay directly, then deinterlace if needed
+                filter_parts.append(f"[0:v][logo]overlay={ffmpeg_position}[logo_video]")
+            
+            # Split the video with logo for all profiles
+            filter_parts.append(f"[logo_video]split={num_profiles}" + ''.join(f"[v{i}]" for i in range(num_profiles)))
         else:
-            filter_parts.append(f"[0:v]split={num_profiles}" + ''.join(f"[v{i}]" for i in range(num_profiles)))
+            # No logo - proceed with original splitting
+            if channel.scan_type == 'progressive':
+                filter_parts.append(f"[0:v]yadif,split={num_profiles}" + ''.join(f"[v{i}]" for i in range(num_profiles)))
+            else:
+                filter_parts.append(f"[0:v]split={num_profiles}" + ''.join(f"[v{i}]" for i in range(num_profiles)))
 
         # Scale each video stream to target resolution
         for i, profile in enumerate(channel.abr.all()):
@@ -211,14 +284,14 @@ def transcoding_start(job_id, retry_count=0):
         ]   
 
         # Configure each output stream
-        for i,profile in enumerate(channel.abr.all()):
+        for i, profile in enumerate(channel.abr.all()):
             ffmpeg_command += [
-            f'-b:v:{i}', str(profile.video_bitrate),
-            f'-minrate:{i}', str(profile.video_bitrate),
-            f'-maxrate:{i}', str(profile.video_bitrate), 
-            f'-bufsize:{i}', str(profile.buffer_size),
+                f'-b:v:{i}', str(profile.video_bitrate),
+                f'-minrate:{i}', str(profile.video_bitrate),
+                f'-maxrate:{i}', str(profile.video_bitrate), 
+                f'-bufsize:{i}', str(profile.buffer_size),
             ]
-        
+    
             # Stream-specific audio parameters
             ffmpeg_command += [
                 f'-b:a:{i}', str(profile.audio_bitrate),
@@ -229,6 +302,7 @@ def transcoding_start(job_id, retry_count=0):
                 '-map', f'[vout{i}]',
                 '-map', f'[aout{i}]',
             ]
+            
             # Output-specific configuration
             if profile.output_type == 'udp':
                 ffmpeg_command += [

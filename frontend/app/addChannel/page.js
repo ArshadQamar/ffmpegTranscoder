@@ -104,7 +104,7 @@ export default function CreateChannel() {
       "frame_rate", "service_id", "video_pid", "audio_pid", "pmt_pid", "pcr_pid",
       "scan_type", "aspect_ratio", "logo_path", "logo_position", "logo_opacity", 
       "id", "status", "job_id", "input_url", "input_file", "output_url", "output_file",
-      "is_abr", "abr_profiles"
+      "is_abr", "abr_profiles", "error_message"
     ];
     //check missing fields
     const missing = REQUIRED_FIELDS.filter(f => !(f in data))

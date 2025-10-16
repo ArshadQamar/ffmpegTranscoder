@@ -65,8 +65,12 @@ export default function Dashboard() {
           if (updated?.status === 'running' || updated?.status === 'error') {
             setChannels(response.data);
             setStarting(prev => ({ ...prev, [jobID]: false }));
+            if (updated?.status === 'error' && updated?.error_message){
+              alert(`Error: ${updated.error_message}`);
+            }
             return;
           }
+
           await new Promise(resolve => setTimeout(resolve, 1000));
           attempt++;
         }
@@ -75,7 +79,12 @@ export default function Dashboard() {
         const updated = finalResponse.data.find(ch => ch.job_id === jobID);
         if (updated?.status === 'running' || updated?.status === 'error') {
           setStarting(prev => ({ ...prev, [jobID]: false }));
+
+          if (updated?.status === 'error' && updated?.error_message){
+            alert(`Error: ${updated.error_message}`);
+          }
         }
+
       };
       await pollUntilRunning();
     } catch (error) {

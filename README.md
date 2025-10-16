@@ -20,6 +20,7 @@ A full-stack application for managing and automating video transcoding workflows
 - Manage transcoding jobs
 - Import/export channel configurations via JSON
 - Responsive frontend with dark mode and branding
+- ABR Outputs
 
 ---
 

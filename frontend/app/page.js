@@ -163,7 +163,7 @@ export default function Dashboard() {
               className="cursor-pointer transition-transform hover:scale-105"
               onClick={() => router.push('/')}
             >
-              <Image src={TVNLogo} alt="TVN Logo" width={100} height={100} priority />
+              <Image src={TVNLogo} alt="TVN Logo" width={140} height={130} priority />
             </div>
           </div>
 

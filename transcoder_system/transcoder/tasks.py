@@ -352,16 +352,22 @@ def transcoding_start(job_id, retry_count=0):
 
         # Video & Audio codec, bitrate, resolution, etc.
         ffmpeg_command += [
-            '-c:v', channel.video_codec, '-preset', 'fast',
+            '-c:v', channel.video_codec,
+            *(
+                ['-preset', 'fast']
+                if channel.video_codec == 'libx264' else []
+             ),
             '-b:v', str(channel.video_bitrate),
             *(
-                ['-minrate', str(channel.video_bitrate), '-maxrate', str(channel.video_bitrate)]
+                ['-minrate', str(channel.video_bitrate), '-maxrate', str(channel.video_bitrate),'-bufsize', str(channel.buffer_size)]
                 if channel.bitrate_mode.lower() == 'cbr' else []
+            ),
+             *(
+                ['-maxrate', str(channel.video_bitrate), '-bufsize', str(channel.buffer_size)]
+                if channel.bitrate_mode.lower() == 'vbr' else []
             ),
             '-c:a', channel.audio,
             '-b:a', str(channel.audio_bitrate),
-            '-bufsize', str(channel.buffer_size),
-            '-x264opts', 'nal-hrd=cbr:force-cfr=1',
             '-fps_mode', 'auto',
             '-s', channel.resolution,
             '-aspect', str(channel.aspect_ratio),

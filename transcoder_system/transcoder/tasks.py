@@ -275,19 +275,20 @@ def transcoding_start(job_id, retry_count=0):
         ffmpeg_command += ['-filter_complex', filter_complex]    
 
         # Global parameters for all streams
-        ffmpeg_command += [
-            '-c:v', channel.video_codec,
-            '-preset', 'fast',
-            '-x264opts', 'nal-hrd=cbr:force-cfr=1', 
-            '-aspect', str(channel.aspect_ratio),
-            '-r', str(channel.frame_rate),
-        ]   
+  
 
         # Configure each output stream
         for i, profile in enumerate(channel.abr.all()):
             resolution_height = profile.resolution.split('x')[1]
             service_name = f"{channel.name}@{resolution_height}"
             ffmpeg_command += [
+                '-c:v', channel.video_codec,
+                *(
+                    ['-preset', 'fast']
+                    if channel.video_codec == 'libx264' else []
+                ),
+                '-aspect', str(channel.aspect_ratio),
+                '-r', str(channel.frame_rate),
                 f'-b:v:{i}', str(profile.video_bitrate),
                 f'-minrate:{i}', str(profile.video_bitrate),
                 f'-maxrate:{i}', str(profile.video_bitrate), 

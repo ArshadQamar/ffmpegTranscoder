@@ -285,6 +285,8 @@ def transcoding_start(job_id, retry_count=0):
 
         # Configure each output stream
         for i, profile in enumerate(channel.abr.all()):
+            resolution_height = profile.resolution.split('x')[1]
+            service_name = f"{channel.name}@{resolution_height}"
             ffmpeg_command += [
                 f'-b:v:{i}', str(profile.video_bitrate),
                 f'-minrate:{i}', str(profile.video_bitrate),
@@ -312,6 +314,8 @@ def transcoding_start(job_id, retry_count=0):
                     '-mpegts_service_id', str(profile.service_id),
                     '-mpegts_pmt_start_pid', str(profile.pmt_pid),
                     '-mpegts_start_pid', str(profile.pcr_pid),
+                    '-metadata', f'service_name={service_name}',
+                    '-metadata', f'service_provider={channel.name}',
                     '-muxrate', str(profile.muxrate),                    
                 ]
                 ffmpeg_command += [

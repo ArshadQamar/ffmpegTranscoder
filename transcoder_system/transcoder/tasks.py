@@ -290,6 +290,9 @@ def transcoding_start(job_id, retry_count=0):
                 '-aspect', str(channel.aspect_ratio),
                 '-r', str(channel.frame_rate),
                 f'-b:v:{i}', str(profile.video_bitrate),
+                '-g', '50',
+                '-bf', '2',
+                '-sc_threshold', '0',                
                 f'-minrate:{i}', str(profile.video_bitrate),
                 f'-maxrate:{i}', str(profile.video_bitrate), 
                 f'-bufsize:{i}', str(profile.buffer_size),
@@ -367,6 +370,9 @@ def transcoding_start(job_id, retry_count=0):
                 ['-maxrate', str(channel.video_bitrate), '-bufsize', str(channel.buffer_size)]
                 if channel.bitrate_mode.lower() == 'vbr' else []
             ),
+            '-g', '50',
+            '-bf', '2',
+            '-sc_threshold', '0',
             '-c:a', channel.audio,
             '-b:a', str(channel.audio_bitrate),
             '-fps_mode', 'auto',

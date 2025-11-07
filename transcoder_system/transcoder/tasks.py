@@ -290,6 +290,16 @@ def transcoding_start(job_id, retry_count=0):
                 '-aspect', str(channel.aspect_ratio),
                 '-r', str(channel.frame_rate),
                 f'-b:v:{i}', str(profile.video_bitrate),
+
+                *(
+                    ['-minrate', str(profile.video_bitrate), '-maxrate', str(profile.video_bitrate),'-bufsize', str(profile.buffer_size)]
+                    if channel.bitrate_mode.lower() == 'cbr' else []
+                ),
+                *(
+                    ['-minrate', str(profile.video_bitrate), '-bufsize', str(profile.buffer_size)]
+                    if channel.bitrate_mode.lower() == 'vbr' else []
+                ),
+
                 '-g', '50',
                 '-bf', '2',
                 '-sc_threshold', '0',                
@@ -297,7 +307,15 @@ def transcoding_start(job_id, retry_count=0):
                 f'-maxrate:{i}', str(profile.video_bitrate), 
                 f'-bufsize:{i}', str(profile.buffer_size),
             ]
-    
+
+            if channel.scan_type == 'interlaced':
+                if channel.video_codec == 'libx264':
+                    ffmpeg_command += ['-x264opts', 'tff=1:interlaced=1']
+                elif channel.video_codec == 'libx265':
+                    ffmpeg_command += ['-x265-params', 'interlace=1:field=tff']
+                elif channel.video_codec == 'mpeg2video':
+                    ffmpeg_command += ['-flags', '+ildct+ilme', '-top', '1']            
+            
             # Stream-specific audio parameters
             ffmpeg_command += [
                 f'-b:a:{i}', str(profile.audio_bitrate),
@@ -320,8 +338,9 @@ def transcoding_start(job_id, retry_count=0):
                     '-mpegts_start_pid', str(profile.pcr_pid),
                     '-metadata', f'service_name={service_name}',
                     '-metadata', f'service_provider={channel.name}',
-                    '-muxrate', str(profile.muxrate),                    
+                    '-muxrate', str(profile.muxrate),                 
                 ]
+                
                 ffmpeg_command += [
                     f'udp://{profile.output_multicast_ip}?localaddr={profile.output_network}&pkt_size=1316'
                 ]   
@@ -337,81 +356,81 @@ def transcoding_start(job_id, retry_count=0):
 
     # ------------------Single Channel-------------------------#
     # Logo/overlay
-    else:
-        if channel.logo_path:
-            raw_position = channel.logo_position
-            ffmpeg_position = raw_position.replace('x=', '').replace('y=', '')
-            if channel.scan_type == "interlaced":
-                ffmpeg_command += [
-                    '-i', channel.logo_path, '-filter_complex',
-                    f'[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[0][logo]overlay={ffmpeg_position}'
-                ]
-            else:
-                ffmpeg_command += [
-                    '-i', channel.logo_path, '-filter_complex',
-                    f'[0:v]yadif[v0];[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[v0][logo]overlay={ffmpeg_position}'
-                ]
-        elif channel.scan_type == "progressive":
-            ffmpeg_command += ['-filter_complex', '[0:v]yadif[v0]', '-map', '[v0]', '-map', '0:a']
+    # else:
+    #     if channel.logo_path:
+    #         raw_position = channel.logo_position
+    #         ffmpeg_position = raw_position.replace('x=', '').replace('y=', '')
+    #         if channel.scan_type == "interlaced":
+    #             ffmpeg_command += [
+    #                 '-i', channel.logo_path, '-filter_complex',
+    #                 f'[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[0][logo]overlay={ffmpeg_position}'
+    #             ]
+    #         else:
+    #             ffmpeg_command += [
+    #                 '-i', channel.logo_path, '-filter_complex',
+    #                 f'[0:v]yadif[v0];[1:v]format=rgba,colorchannelmixer=aa={channel.logo_opacity}[logo];[v0][logo]overlay={ffmpeg_position}'
+    #             ]
+    #     elif channel.scan_type == "progressive":
+    #         ffmpeg_command += ['-filter_complex', '[0:v]yadif[v0]', '-map', '[v0]', '-map', '0:a']
 
         # Video & Audio codec, bitrate, resolution, etc.
-        ffmpeg_command += [
-            '-c:v', channel.video_codec,
-            *(
-                ['-preset', 'fast']
-                if channel.video_codec == 'libx264' else []
-             ),
-            '-b:v', str(channel.video_bitrate),
-            *(
-                ['-minrate', str(channel.video_bitrate), '-maxrate', str(channel.video_bitrate),'-bufsize', str(channel.buffer_size)]
-                if channel.bitrate_mode.lower() == 'cbr' else []
-            ),
-             *(
-                ['-maxrate', str(channel.video_bitrate), '-bufsize', str(channel.buffer_size)]
-                if channel.bitrate_mode.lower() == 'vbr' else []
-            ),
-            '-g', '50',
-            '-bf', '2',
-            '-sc_threshold', '0',
-            '-c:a', channel.audio,
-            '-b:a', str(channel.audio_bitrate),
-            '-fps_mode', 'auto',
-            '-s', channel.resolution,
-            '-aspect', str(channel.aspect_ratio),
-            '-r', str(channel.frame_rate),
-            '-metadata', f'service_name={channel.name}'
-        ]
+        # ffmpeg_command += [
+        #     '-c:v', channel.video_codec,
+        #     *(
+        #         ['-preset', 'fast']
+        #         if channel.video_codec == 'libx264' else []
+        #      ),
+        #     '-b:v', str(channel.video_bitrate),
+        #     *(
+        #         ['-minrate', str(channel.video_bitrate), '-maxrate', str(channel.video_bitrate),'-bufsize', str(channel.buffer_size)]
+        #         if channel.bitrate_mode.lower() == 'cbr' else []
+        #     ),
+        #      *(
+        #         ['-maxrate', str(channel.video_bitrate), '-bufsize', str(channel.buffer_size)]
+        #         if channel.bitrate_mode.lower() == 'vbr' else []
+        #     ),
+        #     '-g', '50',
+        #     '-bf', '2',
+        #     '-sc_threshold', '0',
+        #     '-c:a', channel.audio,
+        #     '-b:a', str(channel.audio_bitrate),
+        #     '-fps_mode', 'auto',
+        #     '-s', channel.resolution,
+        #     '-aspect', str(channel.aspect_ratio),
+        #     '-r', str(channel.frame_rate),
+        #     '-metadata', f'service_name={channel.name}'
+        # ]
 
-        if channel.scan_type == 'interlaced':
-            ffmpeg_command += [
-                '-flags', '+ilme+ildct',
-                '-field_order', 'tt'
-            ]
+        # if channel.scan_type == 'interlaced':
+        #     ffmpeg_command += [
+        #         '-flags', '+ilme+ildct',
+        #         '-field_order', 'tt'
+        #     ]
 
-        if channel.audio_gain:
-            ffmpeg_command += ['-af', f'volume={channel.audio_gain}']
+        # if channel.audio_gain:
+        #     ffmpeg_command += ['-af', f'volume={channel.audio_gain}']
 
-        # Output Handling
-        if channel.output_type == 'hls':
-            ffmpeg_command += [
-                '-f', 'hls', '-hls_time', '10', '-hls_list_size', '6',
-                '-hls_flags', 'delete_segments', channel.output_url
-            ]
-        elif channel.output_type == 'udp':
-            ffmpeg_command += [
-                '-streamid', f'0:{channel.video_pid}', '-streamid', f'1:{channel.audio_pid}',
-                '-mpegts_service_id', str(channel.service_id)
-            ]
-            if channel.pmt_pid:
-                ffmpeg_command += ['-mpegts_pmt_start_pid', str(channel.pmt_pid)]
-            if channel.pcr_pid:
-                ffmpeg_command += ['-mpegts_start_pid', str(channel.pcr_pid)]
-            ffmpeg_command += [
-                '-f', 'mpegts', '-ttl', '50',
-                f'udp://{channel.output_multicast_ip}?localaddr={channel.output_network}&pkt_size=1316'
-            ]
-        elif channel.output_type == 'file':
-            ffmpeg_command += [channel.output_file]
+        # # Output Handling
+        # if channel.output_type == 'hls':
+        #     ffmpeg_command += [
+        #         '-f', 'hls', '-hls_time', '10', '-hls_list_size', '6',
+        #         '-hls_flags', 'delete_segments', channel.output_url
+        #     ]
+        # elif channel.output_type == 'udp':
+        #     ffmpeg_command += [
+        #         '-streamid', f'0:{channel.video_pid}', '-streamid', f'1:{channel.audio_pid}',
+        #         '-mpegts_service_id', str(channel.service_id)
+        #     ]
+        #     if channel.pmt_pid:
+        #         ffmpeg_command += ['-mpegts_pmt_start_pid', str(channel.pmt_pid)]
+        #     if channel.pcr_pid:
+        #         ffmpeg_command += ['-mpegts_start_pid', str(channel.pcr_pid)]
+        #     ffmpeg_command += [
+        #         '-f', 'mpegts', '-ttl', '50',
+        #         f'udp://{channel.output_multicast_ip}?localaddr={channel.output_network}&pkt_size=1316'
+        #     ]
+        # elif channel.output_type == 'file':
+        #     ffmpeg_command += [channel.output_file]
 
     # Print command for debugging
     print(f"FFmpeg Command: {' '.join(ffmpeg_command)}")

@@ -11,41 +11,27 @@ export default function EditChannel() {
   const channelId = params?.id;
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [isAbr, setIsAbr] = useState(false);
-  const [originalIsAbr, setOriginalIsAbr] = useState(false);
 
   // Channel Details
   const [name, setName] = useState('');
   const [inputType, setInputType] = useState('');
   const [input, setInput] = useState('');
-  const [outputType, setOutputType] = useState('');
-  const [output, setOutput] = useState('');
   const [network, setNetwork] = useState([]);
   const [selectedInputNetwork, setSelectedInputNetwork] = useState('');
-  const [selectedOutputNetwork, setSelectedOutputNetwork] = useState('');
 
   // Transcoding Parameters
   const [videoCodec, setVideoCodec] = useState('');
   const [audioCodec, setAudioCodec] = useState('');
   const [audioGain, setAudioGain] = useState('');
   const [bitrateMode, setBitrateMode] = useState('');
-  const [videoBitrate, setVideoBitrate] = useState('');
-  const [audioBitrate, setAudioBitrate] = useState('');
-  const [bufferSize, setBufferSize] = useState('');
-  const [resolution, setResolution] = useState('');
   const [frameRate, setFrameRate] = useState('');
   const [logoPath, setLogoPath] = useState('');
   const [logoPosition, setLogoPosition] = useState('');
   const [logoOpacity, setLogoOpacity] = useState('');
-  const [serviceId, setServiceId] = useState('');
-  const [videoPid, setVideoPid] = useState('');
-  const [audioPid, setAudioPid] = useState('');
-  const [pmtPid, setPmtPid] = useState('');
-  const [pcrPid, setPcrPid] = useState('');
   const [scanType, setScanType] = useState('');
   const [aspectRatio, setAspectRatio] = useState('');
 
-  // ABR Profiles
+  // ABR Profiles - Always enabled
   const [abrProfiles, setAbrProfiles] = useState([]);
 
   useEffect(() => {
@@ -57,38 +43,41 @@ export default function EditChannel() {
         const data = res.data;
         setName(data.name);
         setInputType(data.input_type);
-        setOutputType(data.output_type);
         setInput(data.input_url || data.input_multicast_ip || data.input_file || '');
-        setOutput(data.output_url || data.output_multicast_ip || data.output_file || '');
         setSelectedInputNetwork(data.input_network || '');
-        setSelectedOutputNetwork(data.output_network || '');
         setVideoCodec(data.video_codec);
         setAudioCodec(data.audio);
         setAudioGain(data.audio_gain);
         setBitrateMode(data.bitrate_mode);
-        setVideoBitrate(data.video_bitrate);
-        setAudioBitrate(data.audio_bitrate);
-        setBufferSize(data.buffer_size);
-        setServiceId(data.service_id);
-        setVideoPid(data.video_pid);
-        setAudioPid(data.audio_pid);
-        setPmtPid(data.pmt_pid || '');
-        setPcrPid(data.pcr_pid || '');
-        setResolution(data.resolution);
         setFrameRate(data.frame_rate);
         setLogoPath(data.logo_path || '');
         setLogoPosition(data.logo_position || '');
         setLogoOpacity(data.logo_opacity || '');
         setScanType(data.scan_type);
         setAspectRatio(data.aspect_ratio);
-        setIsAbr(data.is_abr || false);
-        setOriginalIsAbr(data.is_abr || false);
         
-        // Set ABR profiles if exists
-        if (data.is_abr && data.abr_profiles) {
+        // Set ABR profiles - always use ABR structure
+        if (data.abr_profiles && data.abr_profiles.length > 0) {
           setAbrProfiles(data.abr_profiles);
         } else {
-          setAbrProfiles([]);
+          // Convert single channel to ABR profile structure
+          setAbrProfiles([{
+            id: Date.now(),
+            output_type: data.output_type || 'udp',
+            output_url: data.output_url || '',
+            output_multicast_ip: data.output_multicast_ip || '',
+            output_network: data.output_network || '',
+            video_bitrate: data.video_bitrate || '',
+            audio_bitrate: data.audio_bitrate || '',
+            buffer_size: data.buffer_size || '',
+            resolution: data.resolution || '',
+            service_id: data.service_id || '',
+            video_pid: data.video_pid || '',
+            audio_pid: data.audio_pid || '',
+            pmt_pid: data.pmt_pid || '',
+            pcr_pid: data.pcr_pid || '',
+            muxrate: data.muxrate || ''
+          }]);
         }
         
         setLoading(false);
@@ -108,6 +97,7 @@ export default function EditChannel() {
     const newProfile = {
       id: Date.now(), // temporary ID for frontend
       output_type: 'udp',
+      output_url: '',
       output_multicast_ip: '',
       output_network: '',
       video_bitrate: '',
@@ -134,6 +124,9 @@ export default function EditChannel() {
   };
 
   const removeAbrProfile = (index) => {
+    // Don't allow removing the last profile
+    if (abrProfiles.length <= 1) return;
+    
     const updatedProfiles = [...abrProfiles];
     updatedProfiles.splice(index, 1);
     setAbrProfiles(updatedProfiles);
@@ -142,7 +135,8 @@ export default function EditChannel() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    let payload = {
+    // Payload with ABR always enabled
+    const payload = {
       name,
       status: "stopped",
       input_type: inputType,
@@ -150,7 +144,15 @@ export default function EditChannel() {
       input_multicast_ip: inputType === 'udp' ? input : null,
       input_network: inputType === 'udp' ? selectedInputNetwork : null,
       input_file: inputType === 'file' ? input : null,
-      is_abr: isAbr,
+      
+      // No main output fields since we're always using ABR
+      output_type: null,
+      output_url: null,
+      output_multicast_ip: null,
+      output_network: null,
+      output_file: null,
+
+      // Input processing settings only
       video_codec: videoCodec,
       audio: audioCodec,
       audio_gain: parseFloat(audioGain) || 1.0,
@@ -158,62 +160,39 @@ export default function EditChannel() {
       scan_type: scanType,
       aspect_ratio: aspectRatio,
       frame_rate: parseInt(frameRate) || 0,
+
       logo_path: logoPath || null,
       logo_position: logoPosition || null,
       logo_opacity: parseFloat(logoOpacity) || null,
-    };
 
-    // For non-ABR channels
-    if (!isAbr) {
-      payload = {
-        ...payload,
-        output_type: outputType,
-        output_url: outputType === 'hls' ? output : null,
-        output_multicast_ip: outputType === 'udp' ? output : null,
-        output_network: outputType === 'udp' ? selectedOutputNetwork : null,
-        output_file: outputType === 'file' ? output : null,
-        video_bitrate: parseInt(videoBitrate) || 0,
-        audio_bitrate: parseInt(audioBitrate) || 0,
-        buffer_size: parseInt(bufferSize) || 0,
-        service_id: parseInt(serviceId) || 1,
-        audio_pid: parseInt(audioPid) || 102,
-        video_pid: parseInt(videoPid) || 101,
-        pmt_pid: parseInt(pmtPid),
-        pcr_pid: parseInt(pcrPid),
-        resolution,
-      };
-    } else {
-      // For ABR channels
-      payload = {
-        ...payload,
-        output_type: null,
-        output_url: null,
-        output_multicast_ip: null,
-        output_network: null,
-        output_file: null,
-        video_bitrate: null,
-        audio_bitrate: null,
-        buffer_size: null,
-        service_id: null,
-        audio_pid: null,
-        video_pid: null,
-        pmt_pid: null,
-        pcr_pid: null,
-        resolution: null,
-        abr_profiles: abrProfiles.map(profile => ({
-          ...profile,
-          video_bitrate: parseInt(profile.video_bitrate) || 0,
-          audio_bitrate: parseInt(profile.audio_bitrate) || 0,
-          buffer_size: parseInt(profile.buffer_size) || 0,
-          service_id: parseInt(profile.service_id) || 1,
-          video_pid: parseInt(profile.video_pid) || 0,
-          audio_pid: parseInt(profile.audio_pid) || 0,
-          pmt_pid: parseInt(profile.pmt_pid) || 0,
-          pcr_pid: parseInt(profile.pcr_pid) || 0,
-          muxrate: parseInt(profile.muxrate) || 0
-        }))
-      };
-    }
+      // ABR always enabled
+      is_abr: true,
+
+      // No main encoding fields since they're in ABR profiles
+      video_bitrate: null,
+      audio_bitrate: null,
+      buffer_size: null,
+      service_id: null,
+      audio_pid: null,
+      video_pid: null,
+      pmt_pid: null,
+      pcr_pid: null,
+      resolution: null,
+
+      // ABR profiles
+      abr_profiles: abrProfiles.map(profile => ({
+        ...profile,
+        video_bitrate: parseInt(profile.video_bitrate) || 0,
+        audio_bitrate: parseInt(profile.audio_bitrate) || 0,
+        buffer_size: parseInt(profile.buffer_size) || 0,
+        service_id: parseInt(profile.service_id) || 1,
+        video_pid: parseInt(profile.video_pid) || 0,
+        audio_pid: parseInt(profile.audio_pid) || 0,
+        pmt_pid: parseInt(profile.pmt_pid) || 0,
+        pcr_pid: parseInt(profile.pcr_pid) || 0,
+        muxrate: parseInt(profile.muxrate) || 0
+      }))
+    };
 
     try {
       console.log('Payload:', payload);
@@ -283,7 +262,7 @@ export default function EditChannel() {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Channel Configuration</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Update your channel settings</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Update your channel with Adaptive Bitrate (ABR) output profiles</p>
           </div>
 
           <form className="p-6 space-y-8" onSubmit={handleSubmit}>
@@ -291,46 +270,17 @@ export default function EditChannel() {
             <div className="space-y-6">
               <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-blue-500 pl-3">Basic Information</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Channel Name</label>
-                  <input 
-                    type="text" 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)} 
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors" 
-                    required 
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Channel Type</label>
-                  <div className="flex items-center space-x-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="channelType"
-                        value="single"
-                        checked={!isAbr}
-                        onChange={() => setIsAbr(false)}
-                        className="mr-2"
-                      />
-                      Single Channel
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="channelType"
-                        value="abr"
-                        checked={isAbr}
-                        onChange={() => setIsAbr(true)}
-                        className="mr-2"
-                      />
-                      ABR Channel
-                    </label>
-                  </div>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Channel Name</label>
+                <input 
+                  type="text" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors" 
+                  required 
+                />
               </div>
+
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Input Configuration */}
@@ -403,83 +353,267 @@ export default function EditChannel() {
                   )}
                 </div>
 
-                {/* Output Configuration - Only for non-ABR channels */}
-                {!isAbr && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Type</label>
-                      <select 
-                        value={outputType} 
-                        onChange={(e) => setOutputType(e.target.value)} 
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      >
-                        <option value="">Select Output Type</option>
-                        <option value="hls">HLS</option>
-                        <option value="udp">UDP</option>
-                        <option value="file">File</option>
-                      </select>
+                {/* ABR Info Panel */}
+                <div className="space-y-4">
+                  <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-orange-800 dark:text-orange-300 text-sm font-medium">Output Configuration</span>
                     </div>
-
-                    {outputType === 'hls' && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output URL</label>
-                        <input 
-                          type="text" 
-                          value={output} 
-                          onChange={(e) => setOutput(e.target.value)} 
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" 
-                        />
-                      </div>
-                    )}
-
-                    {outputType === 'udp' && (
-                      <>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Multicast IP</label>
-                          <input 
-                            type="text" 
-                            value={output} 
-                            onChange={(e) => setOutput(e.target.value)} 
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" 
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Network</label>
-                          <select 
-                            value={selectedOutputNetwork} 
-                            onChange={(e) => setSelectedOutputNetwork(e.target.value)} 
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                          >
-                            <option value="">Select Network</option>
-                            {network.map((iface, i) => (
-                              <option key={i} value={iface.ip_addresses}>
-                                {iface.name} ({iface.ip_addresses})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </>
-                    )}
-
-                    {outputType === 'file' && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output File</label>
-                        <input 
-                          type="text" 
-                          value={output} 
-                          onChange={(e) => setOutput(e.target.value)} 
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white" 
-                        />
-                      </div>
-                    )}
+                    <p className="text-orange-700 dark:text-orange-400 text-sm mt-2">
+                      Output settings are configured in the section below. 
+                      {abrProfiles.length === 1 ? " You currently have 1 output profile." : ` You currently have ${abrProfiles.length} output profiles.`}
+                    </p>
                   </div>
-                )}
+                </div>
               </div>
             </div>
 
-            {/* Transcoding Parameters */}
+            {/* ABR Profiles Section */}
             <div className="space-y-6">
-              <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-green-500 pl-3">Transcoding Parameters</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-orange-500 pl-3">
+                  ABR Profiles {abrProfiles.length > 0 && `(${abrProfiles.length})`}
+                </h3>
+                <button
+                  type="button"
+                  onClick={addAbrProfile}
+                  className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Profile
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {abrProfiles.map((profile, index) => (
+                  <div key={profile.id} className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Output Profile {index + 1}</h4>
+                      <button
+                        type="button"
+                        onClick={() => removeAbrProfile(index)}
+                        disabled={abrProfiles.length <= 1}
+                        className={`transition-colors ${
+                          abrProfiles.length <= 1 
+                            ? 'text-gray-400 cursor-not-allowed' 
+                            : 'text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300'
+                        }`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {/* Output Type */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Type</label>
+                        <select
+                          value={profile.output_type}
+                          onChange={(e) => updateAbrProfile(index, 'output_type', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                        >
+                          <option value="udp">UDP</option>
+                          <option value="hls">HLS</option>
+                        </select>
+                      </div>
+
+                      {/* Output Configuration based on type */}
+                      {profile.output_type === 'udp' && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Multicast IP</label>
+                            <input
+                              type="text"
+                              value={profile.output_multicast_ip}
+                              onChange={(e) => updateAbrProfile(index, 'output_multicast_ip', e.target.value)}
+                              placeholder="239.0.0.1:6000"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Network Interface</label>
+                            <select
+                              value={profile.output_network}
+                              onChange={(e) => updateAbrProfile(index, 'output_network', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                            >
+                              <option value="">Select Network Interface</option>
+                              {network.map((iface, i) => (
+                                <option key={i} value={iface.ip_addresses}>
+                                  {iface.name} ({iface.ip_addresses})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </>
+                      )}
+
+                      {profile.output_type === 'hls' && (
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output URL</label>
+                          <input
+                            type="text"
+                            value={profile.output_url}
+                            onChange={(e) => updateAbrProfile(index, 'output_url', e.target.value)}
+                            placeholder="http://example.com/stream.m3u8"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                          />
+                        </div>
+                      )}
+
+                      {/* Video Bitrate */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video Bitrate (bps)</label>
+                        <input
+                          type="number"
+                          onWheel={e => e.target.blur()}
+                          value={profile.video_bitrate}
+                          onChange={(e) => updateAbrProfile(index, 'video_bitrate', e.target.value)}
+                          placeholder="e.g. 2400000"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                        />
+                      </div>
+
+                      {/* Audio Bitrate */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio Bitrate (bps)</label>
+                        <input
+                          type="number"
+                          onWheel={e => e.target.blur()}
+                          value={profile.audio_bitrate}
+                          onChange={(e) => updateAbrProfile(index, 'audio_bitrate', e.target.value)}
+                          placeholder="e.g. 128000"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                        />
+                      </div>
+
+                      {/* Buffer Size */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Buffer Size (bits)</label>
+                        <input
+                          type="number"
+                          onWheel={e => e.target.blur()}
+                          value={profile.buffer_size}
+                          onChange={(e) => updateAbrProfile(index, 'buffer_size', e.target.value)}
+                          placeholder="e.g. 4800000"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                        />
+                      </div>
+
+                      {/* Resolution */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Resolution</label>
+                        <select
+                          value={profile.resolution}
+                          onChange={(e) => updateAbrProfile(index, 'resolution', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                        >
+                          <option value="">Select Resolution</option>
+                          <option value="1920x1080">1920x1080</option>
+                          <option value="1280x720">1280x720</option>
+                          <option value="1024x576">1024x576</option>
+                          <option value="768x576">768x576</option>
+                          <option value="854x480">854x480</option>
+                          <option value="640x360">640x360</option>
+                          <option value="426x240">426x240</option>
+                        </select>
+                      </div>
+
+                      {/* Service ID */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Service ID</label>
+                        <input
+                          type="number"
+                          onWheel={e => e.target.blur()}
+                          value={profile.service_id}
+                          onChange={(e) => updateAbrProfile(index, 'service_id', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                          placeholder="1-9999"
+                        />
+                      </div>
+
+                      {/* Video PID */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video PID</label>
+                        <input
+                          type="number"
+                          onWheel={e => e.target.blur()}
+                          value={profile.video_pid}
+                          onChange={(e) => updateAbrProfile(index, 'video_pid', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                          placeholder="1-9999"
+                        />
+                      </div>
+
+                      {/* Audio PID */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio PID</label>
+                        <input
+                          type="number"
+                          onWheel={e => e.target.blur()}
+                          value={profile.audio_pid}
+                          onChange={(e) => updateAbrProfile(index, 'audio_pid', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                          placeholder="1-9999"
+                        />
+                      </div>
+
+                      {/* PMT PID */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PMT PID</label>
+                        <input
+                          type="number"
+                          onWheel={e => e.target.blur()}
+                          value={profile.pmt_pid}
+                          onChange={(e) => updateAbrProfile(index, 'pmt_pid', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                          placeholder="37-8186"
+                        />
+                      </div>
+
+                      {/* PCR PID */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PCR PID</label>
+                        <input
+                          type="number"
+                          onWheel={e => e.target.blur()}
+                          value={profile.pcr_pid}
+                          onChange={(e) => updateAbrProfile(index, 'pcr_pid', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                          placeholder="37-8186"
+                        />
+                      </div>
+
+                      {/* Muxrate */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Muxrate (bps)</label>
+                        <input
+                          type="number"
+                          onWheel={e => e.target.blur()}
+                          value={profile.muxrate}
+                          onChange={(e) => updateAbrProfile(index, 'muxrate', e.target.value)}
+                          placeholder="e.g. 5000000"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Transcoding Parameters - Input Settings Only */}
+            <div className="space-y-6">
+              <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-green-500 pl-3">
+                Input Processing Settings
+              </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Video Codec */}
@@ -584,333 +718,8 @@ export default function EditChannel() {
                     <option value="4:3">4:3</option>
                   </select>
                 </div>
-
-                {/* Single Channel Only Fields */}
-                {!isAbr && (
-                  <>
-                    {/* Video Bitrate */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video Bitrate</label>
-                      <input
-                        type="number"
-                        onWheel={e => e.target.blur()}
-                        value={videoBitrate}
-                        onChange={(e) => setVideoBitrate(e.target.value)}
-                        placeholder="bps"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      />
-                    </div>
-
-                    {/* Audio Bitrate */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio Bitrate</label>
-                      <input
-                        type="number"
-                        onWheel={e => e.target.blur()}
-                        value={audioBitrate}
-                        onChange={(e) => setAudioBitrate(e.target.value)}
-                        placeholder="bps"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      />
-                    </div>
-
-                    {/* Buffer Size */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Buffer Size</label>
-                      <input
-                        type="number"
-                        onWheel={e => e.target.blur()}
-                        value={bufferSize}
-                        onChange={(e) => setBufferSize(e.target.value)}
-                        placeholder="bits"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      />
-                    </div>
-
-                    {/* Resolution */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Resolution</label>
-                      <select
-                        value={resolution}
-                        onChange={(e) => setResolution(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      >
-                        <option value="">Select Resolution</option>
-                        <option value="1920x1080">1920x1080</option>
-                        <option value="1280x720">1280x720</option>
-                        <option value="1024x576">1024x576</option>
-                        <option value="768x576">768x576</option>
-                        <option value="854x480">854x480</option>
-                        <option value="640x360">640x360</option>
-                        <option value="426x240">426x240</option>
-                      </select>
-                    </div>
-
-                    {/* Service ID */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Service ID</label>
-                      <input
-                        type="number"
-                        onWheel={e => e.target.blur()}
-                        value={serviceId}
-                        onChange={(e) => setServiceId(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      />
-                    </div>
-
-                    {/* Video PID */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video PID</label>
-                      <input
-                        type="number"
-                        onWheel={e => e.target.blur()}
-                        value={videoPid}
-                        onChange={(e) => setVideoPid(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      />
-                    </div>
-
-                    {/* Audio PID */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio PID</label>
-                      <input
-                        type="number"
-                        onWheel={e => e.target.blur()}
-                        value={audioPid}
-                        onChange={(e) => setAudioPid(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      />
-                    </div>
-
-                    {/* PMT PID */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PMT PID</label>
-                      <input
-                        type="number"
-                        onWheel={e => e.target.blur()}
-                        value={pmtPid}
-                        onChange={(e) => setPmtPid(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      />
-                    </div>
-
-                    {/* PCR PID */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PCR PID</label>
-                      <input
-                        type="number"
-                        onWheel={e => e.target.blur()}
-                        value={pcrPid}
-                        onChange={(e) => setPcrPid(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                      />
-                    </div>
-                  </>
-                )}
               </div>
             </div>
-
-            {/* ABR Profiles - Only for ABR channels */}
-            {isAbr && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-purple-500 pl-3">ABR Profiles</h3>
-                  <button
-                    type="button"
-                    onClick={addAbrProfile}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors text-sm font-medium"
-                  >
-                    Add Profile
-                  </button>
-                </div>
-
-                {abrProfiles.length === 0 ? (
-                  <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-                    <p className="text-gray-500 dark:text-gray-400">No ABR profiles added yet.</p>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Click "Add Profile" to create your first rendition.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {abrProfiles.map((profile, index) => (
-                      <div key={profile.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
-                        <div className="flex justify-between items-center mb-4">
-                          <h4 className="font-medium text-gray-900 dark:text-white">Profile {index + 1}</h4>
-                          <button
-                            type="button"
-                            onClick={() => removeAbrProfile(index)}
-                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
-                          >
-                            Remove
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {/* Output Multicast IP */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Multicast IP</label>
-                            <input
-                              type="text"
-                              value={profile.output_multicast_ip}
-                              onChange={(e) => updateAbrProfile(index, 'output_multicast_ip', e.target.value)}
-                              placeholder="239.198.19.240:6001"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            />
-                          </div>
-
-                          {/* Output Network */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Output Network</label>
-                            <select
-                              value={profile.output_network}
-                              onChange={(e) => updateAbrProfile(index, 'output_network', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            >
-                              <option value="">Select Network</option>
-                              {network.map((iface, i) => (
-                                <option key={i} value={iface.ip_addresses}>
-                                  {iface.name} ({iface.ip_addresses})
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {/* Video Bitrate */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video Bitrate</label>
-                            <input
-                              type="number"
-                              onWheel={e => e.target.blur()}
-                              value={profile.video_bitrate}
-                              onChange={(e) => updateAbrProfile(index, 'video_bitrate', e.target.value)}
-                              placeholder="bps"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            />
-                          </div>
-
-                          {/* Audio Bitrate */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio Bitrate</label>
-                            <input
-                              type="number"
-                              onWheel={e => e.target.blur()}
-                              value={profile.audio_bitrate}
-                              onChange={(e) => updateAbrProfile(index, 'audio_bitrate', e.target.value)}
-                              placeholder="bps"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            />
-                          </div>
-
-                          {/* Buffer Size */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Buffer Size</label>
-                            <input
-                              type="number"
-                              onWheel={e => e.target.blur()}
-                              value={profile.buffer_size}
-                              onChange={(e) => updateAbrProfile(index, 'buffer_size', e.target.value)}
-                              placeholder="bits"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            />
-                          </div>
-
-                          {/* Resolution */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Resolution</label>
-                            <select
-                              value={profile.resolution}
-                              onChange={(e) => updateAbrProfile(index, 'resolution', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            >
-                              <option value="">Select Resolution</option>
-                              <option value="1920x1080">1920x1080</option>
-                              <option value="1280x720">1280x720</option>
-                              <option value="1024x576">1024x576</option>
-                              <option value="768x576">768x576</option>
-                              <option value="854x480">854x480</option>
-                              <option value="640x360">640x360</option>
-                              <option value="426x240">426x240</option>
-                            </select>
-                          </div>
-
-                          {/* Service ID */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Service ID</label>
-                            <input
-                              type="number"
-                              onWheel={e => e.target.blur()}
-                              value={profile.service_id}
-                              onChange={(e) => updateAbrProfile(index, 'service_id', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            />
-                          </div>
-
-                          {/* Video PID */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video PID</label>
-                            <input
-                              type="number"
-                              onWheel={e => e.target.blur()}
-                              value={profile.video_pid}
-                              onChange={(e) => updateAbrProfile(index, 'video_pid', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            />
-                          </div>
-
-                          {/* Audio PID */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Audio PID</label>
-                            <input
-                              type="number"
-                              onWheel={e => e.target.blur()}
-                              value={profile.audio_pid}
-                              onChange={(e) => updateAbrProfile(index, 'audio_pid', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            />
-                          </div>
-
-                          {/* PMT PID */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PMT PID</label>
-                            <input
-                              type="number"
-                              onWheel={e => e.target.blur()}
-                              value={profile.pmt_pid}
-                              onChange={(e) => updateAbrProfile(index, 'pmt_pid', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            />
-                          </div>
-
-                          {/* PCR PID */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PCR PID</label>
-                            <input
-                              type="number"
-                              onWheel={e => e.target.blur()}
-                              value={profile.pcr_pid}
-                              onChange={(e) => updateAbrProfile(index, 'pcr_pid', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            />
-                          </div>
-
-                          {/* Muxrate */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Muxrate</label>
-                            <input
-                              type="number"
-                              onWheel={e => e.target.blur()}
-                              value={profile.muxrate}
-                              onChange={(e) => updateAbrProfile(index, 'muxrate', e.target.value)}
-                              placeholder="bps"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Logo Overlay */}
             <div className="space-y-6">

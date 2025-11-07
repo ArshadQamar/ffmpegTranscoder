@@ -79,7 +79,7 @@ class Channel(models.Model):
     )
     input_network = models.CharField(max_length=100, blank=True, null=True)
     input_file = models.CharField(blank=True, null=True, max_length=500)
-    is_abr = models.BooleanField(default=False)
+    is_abr = models.BooleanField(default=True)
 
     # Output Details (should be null when is_abr=True)
     output_type = models.CharField(

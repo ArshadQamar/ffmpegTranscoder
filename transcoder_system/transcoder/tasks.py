@@ -303,9 +303,6 @@ def transcoding_start(job_id, retry_count=0):
                 '-g', '50',
                 '-bf', '2',
                 '-sc_threshold', '0',                
-                f'-minrate:{i}', str(profile.video_bitrate),
-                f'-maxrate:{i}', str(profile.video_bitrate), 
-                f'-bufsize:{i}', str(profile.buffer_size),
             ]
 
             if channel.scan_type == 'interlaced':

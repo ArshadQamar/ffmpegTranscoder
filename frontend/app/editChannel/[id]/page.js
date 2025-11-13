@@ -262,14 +262,12 @@ export default function EditChannel() {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Channel Configuration</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Update your channel with Adaptive Bitrate (ABR) output profiles</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Update your channel</p>
           </div>
 
           <form className="p-6 space-y-8" onSubmit={handleSubmit}>
             {/* Basic Information */}
-            <div className="space-y-6">
-              <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-blue-500 pl-3">Basic Information</h3>
-              
+            <div className="space-y-6">              
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Channel Name</label>
                 <input 
@@ -375,7 +373,7 @@ export default function EditChannel() {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-orange-500 pl-3">
-                  ABR Profiles {abrProfiles.length > 0 && `(${abrProfiles.length})`}
+                  Profiles {abrProfiles.length > 0 && `(${abrProfiles.length})`}
                 </h3>
                 <button
                   type="button"
@@ -496,7 +494,7 @@ export default function EditChannel() {
 
                       {/* Buffer Size */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Buffer Size (bits)</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Buffer Size (bps)</label>
                         <input
                           type="number"
                           onWheel={e => e.target.blur()}
@@ -612,7 +610,7 @@ export default function EditChannel() {
             {/* Transcoding Parameters - Input Settings Only */}
             <div className="space-y-6">
               <h3 className="text-md font-medium text-gray-900 dark:text-white border-l-4 border-green-500 pl-3">
-                Input Processing Settings
+                Audio/Video Settings
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

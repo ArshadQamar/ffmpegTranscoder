@@ -68,7 +68,7 @@ export default function Profiles(){
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                             </svg>
-                            ABR Output Profiles ({channel.abr_profiles.length})
+                             Output Profiles ({channel.abr_profiles.length})
                         </h4>
                         {channel.abr_profiles.map((profile, index) => (
                             <div key={profile.id} className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
@@ -259,11 +259,6 @@ export default function Profiles(){
                           <div>
                             <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                               {channel.name}
-                              {channel.is_abr && (
-                                <span className="ml-2 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 px-2 py-1 rounded-full">
-                                  ABR
-                                </span>
-                              )}
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">ID: {channel.id}</p>
                           </div>
@@ -314,9 +309,6 @@ export default function Profiles(){
                 <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
                   Each profile contains the complete channel configuration including input/output settings, 
                   codec parameters, and streaming details. 
-                  <span className="font-semibold"> ABR channels </span> 
-                  show multiple output profiles with different bitrates and resolutions. 
-                  Download these JSON files for backup or to replicate channels across different instances.
                 </p>
               </div>
             </div>

@@ -183,12 +183,6 @@ export default function Profiles(){
                 <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">{channels.length}</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Total Profiles</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
-                  {channels.filter(ch => ch.is_abr).length}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">ABR Channels</div>
-              </div>
             </div>
           </div>
 
@@ -213,9 +207,6 @@ export default function Profiles(){
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Available Profiles</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {channels.length} profile{channels.length !== 1 ? 's' : ''} available for export
-                {channels.filter(ch => ch.is_abr).length > 0 && 
-                  ` • ${channels.filter(ch => ch.is_abr).length} ABR channel${channels.filter(ch => ch.is_abr).length !== 1 ? 's' : ''}`
-                }
               </p>
             </div>
 

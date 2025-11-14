@@ -283,6 +283,7 @@ def transcoding_start(job_id, retry_count=0):
             service_name = f"{channel.name}@{resolution_height}"
             ffmpeg_command += [
                 '-c:v', channel.video_codec,
+                '-c:a', channel.audio,
                 *(
                     ['-preset', 'fast']
                     if channel.video_codec == 'libx264' else []
@@ -296,13 +297,14 @@ def transcoding_start(job_id, retry_count=0):
                     if channel.bitrate_mode.lower() == 'cbr' else []
                 ),
                 *(
-                    ['-minrate', str(profile.video_bitrate), '-bufsize', str(profile.buffer_size)]
+                    ['-maxrate', str(profile.video_bitrate), '-bufsize', str(profile.buffer_size)]
                     if channel.bitrate_mode.lower() == 'vbr' else []
                 ),
 
                 '-g', '50',
                 '-bf', '2',
                 '-sc_threshold', '0',                
+
             ]
 
             if channel.scan_type == 'interlaced':

@@ -330,6 +330,7 @@ def transcoding_start(job_id, retry_count=0):
             if profile.output_type == 'udp':
                 ffmpeg_command += [
                     '-f', 'mpegts',
+                    '-ttl', '50',
                     '-streamid', f'0:{profile.video_pid}',
                     '-streamid', f'1:{profile.audio_pid}',
                     '-mpegts_service_id', str(profile.service_id),

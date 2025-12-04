@@ -212,7 +212,7 @@ def transcoding_start(job_id, retry_count=0):
         ffmpeg_command += ['-re', '-i', channel.input_url]
     elif channel.input_type == 'udp':
         ffmpeg_command += [
-            '-f', 'mpegts', '-fflags', '+genpts+discardcorrupt+igndts',
+            '-f', 'mpegts', '-fflags', '+nobuffer+discardcorrupt',
             '-probesize', '1000000', '-analyzeduration', '1000000',
             '-i', f"udp://{channel.input_multicast_ip}?localaddr={channel.input_network}"
         ]
@@ -303,7 +303,8 @@ def transcoding_start(job_id, retry_count=0):
 
                 '-g', '50',
                 '-bf', '2',
-                '-sc_threshold', '0',                
+                '-sc_threshold', '0',    
+                '-pcr_period', '20',            
 
             ]
 
@@ -337,8 +338,7 @@ def transcoding_start(job_id, retry_count=0):
                     '-mpegts_pmt_start_pid', str(profile.pmt_pid),
                     '-mpegts_start_pid', str(profile.pcr_pid),
                     '-metadata', f'service_name={service_name}',
-                    '-metadata', f'service_provider={channel.name}',
-                    '-muxrate', str(profile.muxrate),                 
+                    '-metadata', f'service_provider={channel.name}',              
                 ]
                 
                 ffmpeg_command += [

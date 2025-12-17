@@ -56,7 +56,7 @@ class StopTranscodingJob(APIView):
     def post(self,request,pk):
         try:
             job = TranscodingJob.objects.get(pk=pk)
-            transcoding_stop(pk)
+            transcoding_stop.delay(pk)
             return Response({'message': f'Job {pk} Stopped'}, status=status.HTTP_200_OK)
         except TranscodingJob.DoesNotExist:
             return Response({'error': 'Transcoding job not found'}, status=status.HTTP_404_NOT_FOUND)

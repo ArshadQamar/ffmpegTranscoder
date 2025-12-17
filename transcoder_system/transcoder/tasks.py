@@ -5,6 +5,7 @@ from django.utils import timezone
 import subprocess, socket, struct
 import os,signal,re,time,threading,logging, psutil
 
+stop_signals = {}
 
 def is_multicast_active(address, timeout=3):
     try:
@@ -99,8 +100,19 @@ def stream_logs(
 
     try:
         for line in process.stdout:
+            if stop_signals.get(job.id, threading.Event()).is_set():
+                print(f"Job {job.id} was stopped, exiting stream_logs thread")
+                try:
+                    logger.info("Stop signal received, terminating FFmpeg...")
+                    process.terminate()
+                    process.wait(timeout=5)
+                    logger.info(f"FFmpeg exited with return code {process.returncode} due to stop signal")
+                except Exception:
+                    pass
+                return
             line = line.strip()
             logger.info(line)
+
 
             # Live status check
             if not log_found and 'frame=' in line and 'fps=' in line and 'bitrate=' in line:
@@ -471,11 +483,13 @@ def transcoding_start(job_id, retry_count=0):
         job.status = 'error'
         job.save()
 
-
+@shared_task
 def transcoding_stop(job_id):
     try:
         job = TranscodingJob.objects.get(id=job_id)
         pid = job.ffmpeg_pid
+        stop_signals[job_id] = stop_signals.get(job_id, threading.Event())
+        stop_signals[job_id].set()
         if not pid:
             print(f'No pid found for job {job_id}. Is it running?')
             if job.status=='running':

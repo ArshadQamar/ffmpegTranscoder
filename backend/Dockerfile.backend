@@ -1,0 +1,36 @@
+FROM python:3.11-slim
+
+# Prevent Python buffering logs
+ENV PYTHONUNBUFFERED=1
+
+# Set workdir
+WORKDIR /app
+
+# System deps (ffmpeg + build tools if needed)
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    netcat-openbsd \
+    curl \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python deps
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy backend code
+COPY . .
+
+# Ensure directories exist
+RUN mkdir -p /app/logs /app/media
+
+# Entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["gunicorn", "transcoder_system.wsgi:application", "--bind", "127.0.0.1:8000"]
+

@@ -1,0 +1,40 @@
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy all frontend source code
+COPY . .
+
+# Build Next.js app
+RUN npm run build
+
+# Stage 2: Production image
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy built frontend from builder stage
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package*.json ./
+
+# Install production dependencies only
+RUN npm ci --omit=dev
+
+# Expose port 3000
+EXPOSE 3000
+
+# Set environment variable for backend API
+ENV NEXT_PUBLIC_BACKEND_API_BASE_URL=/api
+
+# Start Next.js in production mode
+CMD ["npm", "run", "start"]
+

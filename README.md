@@ -69,13 +69,9 @@ README.md
 
 ### Transcoding Job Endpoints
 - `GET /api/jobs/` — List all jobs
-- `POST /api/jobs/` — Start a new job
+- `POST /api/jobs/{id}` — Start a new job
 - `GET /api/jobs/{id}/` — Get job status
 - `POST /api/jobs/{id}/stop/` — Stop a running job
-
-### Import/Export
-- `POST /api/channels/import/` — Import channels from JSON
-- `GET /api/channels/export/` — Download all channels as JSON
 
 ---
 
@@ -90,7 +86,7 @@ curl -X POST http://localhost:8000/api/channels/ \
 
 **Start a Job:**
 ```sh
-curl -X POST http://localhost:8000/api/jobs/ \
+curl -X POST http://localhost:8000/api/jobs/{id} \
   -H "Content-Type: application/json" \
   -d '{"channel": 1}'
 ```

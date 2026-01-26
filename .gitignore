@@ -1,6 +1,5 @@
 .venv/
 *.sqlite3
-*.md
 *.log
 *.pot
 *.pyc

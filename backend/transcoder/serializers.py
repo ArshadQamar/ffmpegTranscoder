@@ -48,7 +48,7 @@ class ChannelSerializer(serializers.ModelSerializer):
             'udp': ['input_network', 'input_multicast_ip'],
             'file': ['input_file'],
             'rtmp': ['input_rtmp_url'],
-            'hls': ['input_hls_url'],
+            'hls': ['input_url'],
             'srt': ['input_srt_url'],
             # Add more input types as needed
         }
